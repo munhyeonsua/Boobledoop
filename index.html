@@ -213,6 +213,25 @@
   .plan-pick b{font-size:15px;}
   .plan-pick span{display:block; font-size:11.5px; color:var(--muted); margin-top:3px;}
   .ell{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  /* bloodwork */
+  #labPaste{font-family:var(--mono); font-size:16px; line-height:1.45;}
+  .labs{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px;}
+  .lab{background:var(--panel-2); border:1px solid var(--border); border-radius:9px; padding:8px 9px 4px; cursor:pointer; min-width:0;}
+  .lab.high,.lab.low{border-color:var(--accent2);}
+  .lab-n{font-size:12.5px; font-weight:600;}
+  .lab-v{font-size:18px; margin-top:2px; display:flex; align-items:baseline; gap:4px; font-family:var(--mono);}
+  .lab-v .u2{font-size:11px; color:var(--muted);}
+  .lab.high .lab-v .val,.lab.low .lab-v .val{color:var(--accent2);}
+  .flag{font-family:var(--sans); font-size:9.5px; font-weight:700; color:#fff; background:var(--accent2); border-radius:4px; padding:1px 5px; margin-left:auto; align-self:center;}
+  .lab-r{font-size:10.5px; font-family:var(--mono); color:var(--muted); margin-bottom:2px;}
+  .lab-cat{font-size:11.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px;}
+  .lab-prev{margin:0 0 10px; border:1px solid var(--border); border-radius:8px; padding:2px 10px;}
+  .lp-row{display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px;}
+  .lp-row:last-child{border-bottom:none;}
+  .lp-row small{display:block; font-size:11px; color:var(--muted);}
+  .lp-new{font-size:9.5px; font-weight:700; color:var(--accent); border:1px solid var(--accent); border-radius:4px; padding:0 4px; margin-left:4px;}
+  .lp-bad{font-size:12px; color:var(--accent2); padding:6px 0; border-bottom:1px solid var(--border);}
+  .num.bad,.bad{color:var(--accent2);}
   .swatches{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center;}
   .sw{width:30px; height:30px; border-radius:50%; border:2px solid var(--border); padding:0;}
   .sw.on{border-color:var(--text); box-shadow:0 0 0 2px var(--panel) inset;}
@@ -487,6 +506,22 @@
       </div>
       <div class="card"><div id="sleepChartWrap"></div></div>
       <div class="card" id="sleepHistoryList"></div>
+
+      <h2 class="section-title">Add bloodwork</h2>
+      <div class="card">
+        <label>Paste results — one per line or all in a row</label>
+        <textarea id="labPaste" rows="5" autocapitalize="off" spellcheck="false" oninput="renderLabPreview()"
+          placeholder="Total Testosterone: 650 ng/dL Range:280:800&#10;Estradiol: 32 pg/mL Range:10:40&#10;Hematocrit: 48 % Range:38.5:50"></textarea>
+        <div id="labPreview"></div>
+        <div class="row" style="align-items:flex-end;">
+          <div><label>Date drawn</label><input type="date" id="labDate"></div>
+          <div><button class="btn block" style="margin-bottom:10px;" onclick="saveLabPanel()">Save panel</button></div>
+        </div>
+        <button class="btn secondary block" onclick="openLab()">+ Add a lab by hand</button>
+      </div>
+
+      <h2 class="section-title">Bloodwork</h2>
+      <div id="labsWrap"></div>
     </section>
 
     <!-- MORE -->
@@ -500,15 +535,6 @@
         <button class="btn block" onclick="saveSbd()">Save lifts</button>
       </div>
 
-      <h2 class="section-title">Bloodwork</h2>
-      <div class="card">
-        <label>Date</label><input type="date" id="bwDate">
-        <label>Markers (one per line)</label>
-        <textarea id="bwMarkers" rows="4" style="font-family:var(--mono); font-size:14px;" placeholder="Total T: 650 ng/dL&#10;LDL: 110 mg/dL&#10;ALT: 28 U/L"></textarea>
-        <label>Notes</label><input id="bwNotes">
-        <button class="btn block" onclick="logBloodwork()">Save panel</button>
-      </div>
-      <div class="card" id="bwHistoryList"></div>
 
       <h2 class="section-title">Daily macro targets</h2>
       <div class="card">
@@ -537,6 +563,9 @@
         <label>Bloodwork reminder — day of month</label><input type="number" id="bwDay" min="1" max="28">
         <button class="btn block" onclick="saveReminders()">Save reminders</button>
       </div>
+
+      <h2 class="section-title">Sync across devices</h2>
+      <div class="card" id="syncCard"></div>
 
       <h2 class="section-title">Colors</h2>
       <div class="card">
@@ -581,7 +610,7 @@ function defaultStore(){
     foods:[], meals:[], exercises:[], sets:[], sleep:[],
     bloodwork:[], doses:[], bodyweight:[], bp:[], rpeExercises:[],
     medSchedule:[], medLog:[], medPresets:[], cardio:[], theme:{accent:null,mode:'auto'}, unit:'lb', collapsed:{'view-food:Food library':true,'view-lifts:Lift library':true,'view-meds:Add to schedule':true},
-    goals:{bw:null,lifts:{}}, plans:[], session:null,
+    goals:{bw:null,lifts:{}}, plans:[], session:null, labs:[], labResults:[],
     sbd:{squat:null,bench:null,deadlift:null},
     targets:{carb:0,prot:0,fat:0},
     reminders:{mealTimes:[],sleepTime:'',bwDay:null},
@@ -610,9 +639,47 @@ function load(){
     DB._seeded=true;
   }
   if(Object.keys(DB.collapsed||{}).some(k=>/:\d+$/.test(k))) DB.collapsed=d.collapsed;
-  autoMatchSbd(); save();
+  if(!DB._labsMigrated){
+    DB.bloodwork.forEach(p=>{ const {items}=parseLabs(p.markers); if(items.length) importLabs(items,p.date); });
+    DB._labsMigrated=true;
+  }
+  autoMatchSbd(); stamp(true);
+  try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){}
 }
-function save(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){ toast('Storage unavailable'); } }
+/* Change tracking for sync: every list item gets a _t (last-changed time), removed ids are
+   remembered in _deleted, and other settings get a per-key time in _kt. This lets two devices
+   merge entry by entry instead of one overwriting the other. */
+let SNAP=null;
+function stamp(baseline){
+  const now=Date.now(); let changed=false;
+  DB._deleted=DB._deleted||{}; DB._kt=DB._kt||{};
+  const snap={arr:{},key:{}};
+  for(const k in DB){
+    if(k==='_deleted'||k==='_kt') continue;
+    const v=DB[k];
+    if(Array.isArray(v)&&v.every(it=>it&&typeof it==='object'&&it.id)){
+      const m=snap.arr[k]={};
+      v.forEach(it=>{
+        const {_t,...rest}=it, j=JSON.stringify(rest);
+        if(!baseline&&SNAP&&(!SNAP.arr[k]||SNAP.arr[k][it.id]!==j)){ it._t=now; changed=true; }
+        m[it.id]=j;
+      });
+      if(!baseline&&SNAP&&SNAP.arr[k]) for(const id in SNAP.arr[k]) if(!(id in m)){ DB._deleted[id]=now; changed=true; }
+    } else {
+      const j=JSON.stringify(v);
+      if(!baseline&&SNAP&&SNAP.key[k]!==j){ DB._kt[k]=now; changed=true; }
+      snap.key[k]=j;
+    }
+  }
+  const old=now-180*864e5;
+  for(const id in DB._deleted) if(DB._deleted[id]<old) delete DB._deleted[id];
+  SNAP=snap; return changed;
+}
+function save(){
+  const changed=stamp(false);
+  try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){ toast('Storage unavailable'); }
+  if(changed&&SYNC){ SYNC.dirty=true; saveSyncCfg(); scheduleSync(); }
+}
 function uid(){ return Math.random().toString(36).slice(2,10); }
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function todayStr(){ return ymd(new Date()); }
@@ -966,17 +1033,17 @@ function chartShow(chart,clientX){
   document.addEventListener('touchstart',e=>{
     const c=e.target.closest('.chart'); if(!c) return;
     const t=e.touches[0]; sx=t.clientX; sy=t.clientY;
-    clearTimeout(timer); timer=setTimeout(()=>{ timer=null; active=c; chartShow(c,sx); },160);
+    clearTimeout(timer); timer=setTimeout(()=>{ timer=null; active=c; chartShow(c,sx); window._scrubAt=Date.now(); },160);
   },{passive:true});
   document.addEventListener('touchmove',e=>{
     const t=e.touches[0];
-    if(active){ e.preventDefault(); chartShow(active,t.clientX); return; }
+    if(active){ e.preventDefault(); chartShow(active,t.clientX); window._scrubAt=Date.now(); return; }
     if(timer&&(Math.abs(t.clientX-sx)>8||Math.abs(t.clientY-sy)>8)){ clearTimeout(timer); timer=null; }
   },{passive:false});
   const end=()=>{ clearTimeout(timer); timer=null; active=null; };
   document.addEventListener('touchend',end); document.addEventListener('touchcancel',end);
   document.addEventListener('mousedown',e=>{ const c=e.target.closest('.chart'); if(c){ mdown=c; chartShow(c,e.clientX); } });
-  document.addEventListener('mousemove',e=>{ if(mdown) chartShow(mdown,e.clientX); });
+  document.addEventListener('mousemove',e=>{ if(mdown){ chartShow(mdown,e.clientX); window._scrubAt=Date.now(); } });
   document.addEventListener('mouseup',()=>{ mdown=null; });
 })();
 function sparkline(vals,color){
@@ -1245,6 +1312,353 @@ function renderLifts(){
   renderCardio();
   renderPlans();
 }
+/* ============ GitHub sync ============ */
+const SYNC_KEY='physio_sync', SYNC_PATH='bloobledoop-data.json';
+let SYNC=null; try{ SYNC=JSON.parse(localStorage.getItem(SYNC_KEY)||'null'); }catch(e){}
+let syncBusy=false, syncAgain=false, syncTimer=null, syncErr='';
+function saveSyncCfg(){ try{ if(SYNC) localStorage.setItem(SYNC_KEY,JSON.stringify(SYNC)); else localStorage.removeItem(SYNC_KEY); }catch(e){} }
+function scheduleSync(){ clearTimeout(syncTimer); syncTimer=setTimeout(syncNow,2500); }
+function b64enc(str){ const b=new TextEncoder().encode(str); let s=''; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); }
+function b64dec(s){ return new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0))); }
+function ghFetch(url,opts){
+  opts=opts||{};
+  return fetch('https://api.github.com'+url,{method:opts.method||'GET',cache:'no-store',
+    headers:Object.assign({Authorization:'Bearer '+SYNC.token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},opts.headers||{}),
+    body:opts.body?JSON.stringify(opts.body):undefined});
+}
+function ghErr(status){
+  if(status===401) return 'Token rejected — it may have expired. Reconnect with a new one.';
+  if(status===403) return 'Token can\u2019t write to that repo (needs Contents: Read and write).';
+  if(status===404) return 'Repo not found, or the token doesn\u2019t have access to it.';
+  return 'GitHub error '+status;
+}
+async function pullRemote(){
+  const url=`/repos/${SYNC.repo}/contents/${SYNC_PATH}`;
+  const r=await ghFetch(url);
+  if(r.status===404) return {data:null,sha:null};
+  if(!r.ok) throw new Error(ghErr(r.status));
+  const j=await r.json();
+  let text;
+  if(j.encoding==='base64'&&j.content) text=b64dec(j.content);
+  else { const r2=await ghFetch(url,{headers:{Accept:'application/vnd.github.raw+json'}}); if(!r2.ok) throw new Error(ghErr(r2.status)); text=await r2.text(); }
+  return {data:JSON.parse(text),sha:j.sha};
+}
+function mergeDB(A,B){
+  const out={}, del=Object.assign({},A._deleted||{},B._deleted||{}), kt={};
+  for(const id in B._deleted||{}) del[id]=Math.max(del[id]||0,B._deleted[id]);
+  const keys=new Set([...Object.keys(A),...Object.keys(B)]);
+  for(const k of keys){
+    if(k==='_deleted'||k==='_kt') continue;
+    const a=A[k], b=B[k];
+    const isList=v=>Array.isArray(v)&&v.every(it=>it&&typeof it==='object'&&it.id);
+    if((a===undefined||isList(a))&&(b===undefined||isList(b))&&(Array.isArray(a)||Array.isArray(b))){
+      const m=new Map();
+      [...(a||[]),...(b||[])].forEach(it=>{
+        if(del[it.id]&&del[it.id]>=(it._t||0)) return;
+        const cur=m.get(it.id);
+        if(!cur||(it._t||0)>(cur._t||0)) m.set(it.id,it);
+      });
+      out[k]=[...m.values()];
+    } else {
+      const ta=(A._kt||{})[k]||0, tb=(B._kt||{})[k]||0;
+      out[k]=(a===undefined||(b!==undefined&&tb>ta))?b:a;
+      kt[k]=Math.max(ta,tb);
+    }
+  }
+  out._deleted=del; out._kt=kt;
+  return out;
+}
+function applySynced(data){
+  const before=JSON.stringify(DB);
+  DB=data;
+  const d=defaultStore(); for(const k in d){ if(DB[k]===undefined) DB[k]=d[k]; }
+  stamp(true);
+  try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){}
+  if(JSON.stringify(DB)===before) return;
+  applyTheme();
+  const a=document.activeElement, typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName);
+  if(!typing&&!document.getElementById('modal').classList.contains('open')){ renderCurrent(); renderSession(); }
+}
+async function syncNow(manual){
+  if(!SYNC||!SYNC.token) return;
+  if(syncBusy){ syncAgain=true; return; }
+  syncBusy=true; syncErr=''; renderSyncStatus('Syncing…');
+  try{
+    for(let attempt=0;attempt<4;attempt++){
+      const {data,sha}=await pullRemote();
+      if(data&&sha!==SYNC.sha) applySynced(mergeDB(DB,data));
+      if(data&&!SYNC.dirty){ SYNC.sha=sha; break; }
+      const r=await ghFetch(`/repos/${SYNC.repo}/contents/${SYNC_PATH}`,{method:'PUT',body:{
+        message:'Sync '+new Date().toISOString(), content:b64enc(JSON.stringify(DB)), ...(sha?{sha}:{})}});
+      if(r.status===409||r.status===422){ SYNC.sha=null; continue; }   // another device saved first — merge again
+      if(!r.ok) throw new Error(ghErr(r.status));
+      const j=await r.json(); SYNC.sha=j.content.sha; SYNC.dirty=false; break;
+    }
+    SYNC.last=Date.now(); saveSyncCfg();
+    if(manual) toast('Synced');
+  }catch(e){
+    syncErr=e.message||'Offline';
+    if(manual) toast('Sync failed — '+syncErr);
+  }finally{
+    syncBusy=false; renderSyncStatus();
+    if(syncAgain){ syncAgain=false; scheduleSync(); }
+  }
+}
+function renderSyncStatus(msg){
+  const el=document.getElementById('syncStatus'); if(!el||!SYNC) return;
+  const ago=SYNC.last?Math.round((Date.now()-SYNC.last)/60000):null;
+  el.innerHTML=msg||(syncErr?`<span style="color:var(--accent2)">${esc(syncErr)}</span>`
+    :SYNC.last?`Last synced ${ago<1?'just now':ago+' min ago'}${SYNC.dirty?' · changes waiting':''}`:'Not synced yet');
+}
+function renderSync(){
+  const el=document.getElementById('syncCard');
+  if(SYNC){
+    el.innerHTML=`<div class="flexrow" style="margin-bottom:8px;"><span>Connected to <b>${esc(SYNC.repo)}</b></span></div>
+      <div class="muted" style="font-size:12.5px; margin-bottom:12px;" id="syncStatus"></div>
+      <div class="row"><button class="btn secondary" onclick="disconnectSync()">Disconnect</button><button class="btn" onclick="syncNow(true)">Sync now</button></div>`;
+    renderSyncStatus(); return;
+  }
+  el.innerHTML=`<div class="hint" style="margin-bottom:10px; line-height:1.5;">
+      1. On GitHub, create a new <b>private</b> repo, e.g. <span class="num">bloobledoop-data</span>.<br>
+      2. Settings → Developer settings → Fine-grained tokens → Generate. Under Repository access pick <b>only</b> that repo; under Permissions set <b>Contents: Read and write</b>.<br>
+      3. Paste the repo and token below. Do the same on each device (you can reuse the token).</div>
+    <label>Repo (owner/name or URL)</label><input id="syncRepo" placeholder="yourname/bloobledoop-data" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <label>Token</label><input id="syncToken" type="password" placeholder="github_pat_…" autocomplete="off">
+    <button class="btn block" onclick="connectSync()">Connect</button>`;
+}
+async function connectSync(){
+  let repo=document.getElementById('syncRepo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/+$/,'');
+  const token=document.getElementById('syncToken').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!token){ toast('Enter owner/repo and a token'); return; }
+  SYNC={repo,token};
+  try{
+    const r=await ghFetch('/repos/'+repo);
+    if(!r.ok) throw new Error(ghErr(r.status));
+    const j=await r.json();
+    if(!j.private) throw new Error('That repo is public — anyone could read your data. Make it private first.');
+  }catch(e){ SYNC=null; toast(e.message||'Could not reach GitHub'); return; }
+  SYNC={repo,token,sha:null,dirty:true,last:null}; saveSyncCfg();
+  renderSync(); await syncNow(true); renderSync();
+}
+function disconnectSync(){
+  askConfirm('Stop syncing this device? Your data stays on this device and in the repo.','Disconnect',()=>{
+    SYNC=null; saveSyncCfg(); renderSync(); toast('Sync turned off on this device');
+  });
+}
+document.addEventListener('visibilitychange',()=>{ if(!SYNC) return; if(document.visibilityState==='visible') syncNow(); else if(SYNC.dirty) syncNow(); });
+window.addEventListener('online',()=>{ if(SYNC) syncNow(); });
+
+/* ============ bloodwork ============ */
+const LAB_CATS=[
+  ['Metabolic',/\b(a1c|hba1c|glucose|insulin|homa)/],
+  ['Thyroid',/\b(tsh|t3|t4|ft3|ft4|thyroid|tpo|thyroglobulin)\b/],
+  ['Lipids',/\b(cholesterol|ldl|hdl|vldl|triglycerides?|apo ?b|apolipoprotein|lp\(a\)|lipoprotein)/],
+  ['Hormones',/\b(testosterone|estradiol|e2|shbg|lh|fsh|prolactin|dhea|progesterone|igf|cortisol|dht|dihydrotestosterone|pregnenolone|growth hormone|hgh|psa|estrone)/],
+  ['CBC',/\b(wbc|rbc|white blood|red blood|hemoglobin|haemoglobin|hgb|hematocrit|haematocrit|hct|platelets?|plt|mcv|mch|mchc|rdw|mpv|neutrophils?|lymphocytes?|monocytes?|eosinophils?|basophils?)\b/],
+  ['Liver',/\b(alt|ast|sgpt|sgot|alp|alkaline phosphatase|bilirubin|ggt|albumin|globulin|total protein|a\/g ratio)\b/],
+  ['Kidney',/\b(creatinine|bun|urea|egfr|gfr|cystatin|uric acid|bun\/creatinine)\b/],
+  ['Electrolytes',/\b(sodium|potassium|chloride|co2|carbon dioxide|bicarbonate|calcium|magnesium|phosph)/],
+  ['Vitamins & minerals',/\b(vitamin|vit ?d|25-?oh|b12|folate|folic|ferritin|iron|tibc|transferrin|zinc|copper|selenium)/],
+  ['Inflammation',/\b(crp|hs-?crp|c-reactive|esr|sed rate|homocysteine|fibrinogen)/],
+];
+function guessLabCat(name){ const n=name.toLowerCase(); for(const [c,re] of LAB_CATS) if(re.test(n)) return c; return 'Other'; }
+/* match names that mean the same test: "Testosterone, Total" = "Total Testosterone", "LDL Cholesterol" = "LDL" */
+function labKey(name){
+  let w=name.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ')
+    .filter(x=>!['total','serum','plasma','blood','level','levels','calc','calculated','direct','measured','test'].includes(x));
+  if(w.some(x=>/^(ldl|hdl|vldl|non)$/.test(x))) w=w.filter(x=>x!=='cholesterol'&&x!=='c');
+  if(!w.length) w=name.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ');
+  return w.sort().join(' ');
+}
+function labNum(s){
+  s=String(s).trim();
+  if(/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s=s.replace(/,/g,'');
+  else s=s.replace(',','.');
+  const v=parseFloat(s); return isFinite(v)?v:null;
+}
+/* Parses "Name: 650 ng/dL Range:280:800" entries — one per line, or several in a row. */
+function parseLabs(text){
+  const out=[], bad=[];
+  const NUM='-?\\d[\\d,]*(?:\\.\\d+)?';
+  const src=String(text||'').replace(/\r/g,'').replace(/\b(?:ref(?:erence)?\.?\s*(?:range|interval)?|range|normal)\s*:?/gi,'§');
+  const re=new RegExp(`([A-Za-z0-9(][^\\n§:;]*?)\\s*:\\s*([<>]=?|≤|≥)?\\s*(${NUM})\\s*([^\\s§;]*[A-Za-zµμ%/^][^\\s§;]*)?\\s*(?:§\\s*(?:([<>]=?|≤|≥)\\s*(${NUM})|(${NUM})\\s*(?:[:\\-–—]|to)\\s*(${NUM})))?\\s*[,;]?`,'gi');
+  let m, last=0;
+  const skipped=s=>{ s=s.replace(/[\s,;]+/g,' ').replace(/[\s\-•*]+$/,'').trim(); if(s) bad.push(s); };
+  while((m=re.exec(src))){
+    skipped(src.slice(last,m.index)); last=re.lastIndex;
+    const name=m[1].replace(/\s+/g,' ').trim().replace(/^(?:[-•*]\s*|\d+[.)]\s+)/,'');
+    const v=labNum(m[3]); if(v===null||!name){ skipped(m[0]); continue; }
+    let lo=null, hi=null;
+    if(m[6]!==undefined){ const n=labNum(m[6]); if(/</.test(m[5])||m[5]==='≤') hi=n; else lo=n; }
+    else if(m[7]!==undefined){ lo=labNum(m[7]); hi=labNum(m[8]); if(lo>hi) [lo,hi]=[hi,lo]; }
+    out.push({name, v, q:m[2]?m[2].replace('≤','<').replace('≥','>').replace('=',''):'', unit:(m[4]||'').trim(), lo, hi});
+  }
+  skipped(src.slice(last));
+  return {items:out, bad:bad.filter(b=>!/^§?$/.test(b)).map(b=>b.replace(/§/g,'Range:'))};
+}
+const LAB_CAT_ORDER=['Hormones','Lipids','CBC','Metabolic','Thyroid','Liver','Kidney','Electrolytes','Vitamins & minerals','Inflammation','Other'];
+function catRank(c){ const i=LAB_CAT_ORDER.indexOf(c); return i<0?LAB_CAT_ORDER.length-1.5:i; }
+function findLab(name){ const k=labKey(name); return DB.labs.find(l=>labKey(l.name)===k); }
+function labResultsOf(id){ return DB.labResults.filter(r=>r.labId===id).sort((a,b)=>a.date.localeCompare(b.date)); }
+function labsIn(c){ return DB.labs.filter(l=>(l.cat||'Other')===c).sort((a,b)=>(a.order||0)-(b.order||0)); }
+function labRange(r,l){ return (r&&(r.lo!=null||r.hi!=null))?{lo:r.lo,hi:r.hi}:{lo:l.lo,hi:l.hi}; }
+function labOut(r,l){ const g=labRange(r,l); if(g.hi!=null&&r.v>g.hi) return 'high'; if(g.lo!=null&&r.v<g.lo) return 'low'; return ''; }
+function fmtRange(lo,hi){ return lo!=null&&hi!=null?`${lo}–${hi}`:hi!=null?`under ${hi}`:lo!=null?`over ${lo}`:'no range set'; }
+function shortD(d){ return new Date(d+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'2-digit'}); }
+function importLabs(items,date){
+  let fresh=0;
+  items.forEach(i=>{
+    let l=findLab(i.name);
+    if(!l){
+      const cat=guessLabCat(i.name);
+      l={id:uid(),name:i.name,unit:i.unit,lo:i.lo,hi:i.hi,cat,order:Math.max(0,...labsIn(cat).map(x=>x.order||0))+1};
+      DB.labs.push(l); fresh++;
+    } else {
+      const newest=labResultsOf(l.id).pop();
+      if((i.lo!=null||i.hi!=null)&&(!newest||date>=newest.date)){ l.lo=i.lo; l.hi=i.hi; }
+      if(i.unit&&!l.unit) l.unit=i.unit;
+    }
+    DB.labResults=DB.labResults.filter(r=>!(r.labId===l.id&&r.date===date));
+    DB.labResults.push({id:uid(),labId:l.id,date,v:i.v,q:i.q||'',lo:i.lo,hi:i.hi});
+  });
+  return fresh;
+}
+function renderLabPreview(){
+  const el=document.getElementById('labPreview'), {items,bad}=parseLabs(document.getElementById('labPaste').value);
+  if(!items.length&&!bad.length){ el.innerHTML=''; return; }
+  el.innerHTML=`<div class="lab-prev">${items.map(i=>{
+      const l=findLab(i.name), g=(i.lo!=null||i.hi!=null)?i:(l||{}), unit=i.unit||(l&&l.unit)||'';
+      const f=(g.hi!=null&&i.v>g.hi)?'high':(g.lo!=null&&i.v<g.lo)?'low':'';
+      return `<div class="lp-row"><div style="min-width:0;"><span>${esc(i.name)}</span>${l?'':'<span class="lp-new">NEW</span>'}
+          <small>${esc(l?l.cat:guessLabCat(i.name))} · ${fmtRange(g.lo,g.hi)}</small></div>
+        <div class="num ${f?'bad':''}" style="text-align:right; white-space:nowrap;">${esc(i.q)}${i.v} ${esc(unit)}${f?`<small class="bad">${f.toUpperCase()}</small>`:''}</div></div>`;
+    }).join('')}${bad.map(b=>`<div class="lp-bad">Couldn’t read: ${esc(b)}</div>`).join('')}</div>`;
+}
+function saveLabPanel(){
+  const {items,bad}=parseLabs(document.getElementById('labPaste').value);
+  if(!items.length){ toast('Nothing to save — use: Name: 650 ng/dL Range:280:800'); return; }
+  const date=document.getElementById('labDate').value||curDay();
+  const fresh=importLabs(items,date);
+  save(); document.getElementById('labPaste').value=''; renderLabPreview(); renderLabs();
+  toast(`Saved ${items.length} result${items.length>1?'s':''} for ${shortD(date)}${fresh?` · ${fresh} new lab${fresh>1?'s':''}`:''}${bad.length?` · ${bad.length} skipped`:''}`);
+}
+function labChart(l,rs,big){
+  const W=big?320:160, H=big?150:56, padL=big?36:4, padR=big?12:4, padT=big?18:13, padB=big?22:5;
+  const pts=rs.map(r=>({date:r.date,v:r.v,f:labOut(r,l)}));
+  const vals=pts.map(p=>p.v).concat([l.lo,l.hi].filter(x=>x!=null));
+  let mn=Math.min(...vals), mx=Math.max(...vals); if(mn===mx){ mn-=Math.abs(mn)*0.1||1; mx+=Math.abs(mx)*0.1||1; }
+  const pad=(mx-mn)*0.14, lo=mn-pad, hi=mx+pad;
+  const dates=pts.map(p=>p.date);
+  const x=i=>padL+(dates.length<2?(W-padL-padR)/2:i/(dates.length-1)*(W-padL-padR));
+  const y=v=>H-padB-((v-lo)/(hi-lo))*(H-padT-padB);
+  const good=cssVar('--good','#5FA85A'), accent=cssVar('--accent','#D9A441'), bad=cssVar('--accent2','#D0574B');
+  let body='';
+  if(l.lo!=null||l.hi!=null){
+    const top=l.hi!=null?y(l.hi):padT, bot=l.lo!=null?y(l.lo):H-padB;
+    body+=`<rect x="${padL}" y="${top.toFixed(1)}" width="${W-padL-padR}" height="${Math.max(0,bot-top).toFixed(1)}" fill="${good}" opacity=".13"/>`;
+    [l.lo,l.hi].forEach(v=>{ if(v!=null) body+=`<line x1="${padL}" x2="${W-padR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="${good}" stroke-dasharray="3 3" opacity=".7"/>`
+      +(big?`<text x="${W-padR}" y="${(y(v)-3).toFixed(1)}" font-size="9" text-anchor="end" style="fill:${good}">${v}</text>`:''); });
+  }
+  if(pts.length>1) body+=`<polyline points="${pts.map((p,i)=>x(i).toFixed(1)+','+y(p.v).toFixed(1)).join(' ')}" fill="none" stroke="${accent}" stroke-width="${big?2:1.6}"/>`;
+  body+=pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${big?3.6:2.6}" fill="${p.f?bad:accent}"/>`).join('');
+  const meta={W,H,padT,padB,lo,hi,unit:l.unit||'',dates,xs:dates.map((d,i)=>+x(i).toFixed(1)),series:[{c:accent,v:Object.fromEntries(pts.map(p=>[p.date,p.v]))}]};
+  return `<div class="chart" data-m="${esc(JSON.stringify(meta))}"><svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
+    ${big?`<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="var(--border)"/><line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="var(--border)"/>
+      <text x="2" y="${padT+8}" font-size="9">${round1(hi)}</text><text x="2" y="${H-padB}" font-size="9">${round1(lo)}</text>
+      <text x="${padL}" y="${H-4}" font-size="9">${dates[0].slice(2)}</text>${dates.length>1?`<text x="${W-padR}" y="${H-4}" font-size="9" text-anchor="end">${dates[dates.length-1].slice(2)}</text>`:''}`:''}
+    <text class="rd" x="${padL}" y="${big?11:9}" font-size="9">${big?'hold &amp; drag to see values':''}</text>
+    ${body}
+    <g class="cur" style="display:none"><line y1="${padT}" y2="${H-padB}" stroke="var(--text)" stroke-width="1" opacity=".45"/><g class="cd"></g></g></svg></div>`;
+}
+function labCard(l){
+  const rs=labResultsOf(l.id), last=rs[rs.length-1], f=last?labOut(last,l):'', g=labRange(last,l);
+  return `<div class="lab ${f}" onclick="openLab('${l.id}')">
+    <div class="lab-n ell">${esc(l.name)}</div>
+    <div class="lab-v"><span class="val">${last?esc(last.q)+last.v:'—'}</span><span class="u2">${esc(l.unit||'')}</span>${f?`<span class="flag">${f==='high'?'HIGH':'LOW'}</span>`:''}</div>
+    <div class="lab-r ell">${fmtRange(g.lo,g.hi)}${last?' · '+shortD(last.date):''}</div>
+    ${rs.length?labChart(l,rs,false):''}</div>`;
+}
+function renderLabs(){
+  const wrap=document.getElementById('labsWrap'); if(!wrap) return;
+  const d=document.getElementById('labDate'); if(d&&!d.value) d.value=curDay();
+  const cats=[...new Set(DB.labs.map(l=>l.cat||'Other'))].sort((a,b)=>catRank(a)-catRank(b)||a.localeCompare(b));
+  const old=DB.bloodwork.filter(p=>p.notes||parseLabs(p.markers).bad.length);
+  wrap.innerHTML=(cats.length?cats.map(c=>`<div class="card"><div class="lab-cat">${esc(c)}</div><div class="labs">${labsIn(c).map(labCard).join('')}</div></div>`).join('')
+      :'<div class="card"><div class="empty">No labs yet — paste a panel above</div></div>')
+    +(DB.labs.length?'<div class="hint" style="margin:-2px 0 8px;">Tap a lab to see its history, edit its range, or move it.</div>':'')
+    +(old.length?`<div class="card"><div class="lab-cat">Earlier text entries</div>${old.map(p=>`<div class="listrow"><div><div class="r-title">${p.date}</div>
+        <div class="r-sub">${esc(p.markers).replace(/\n/g,' · ')}${p.notes?' — '+esc(p.notes):''}</div></div><button class="del" onclick="delBw('${p.id}')">×</button></div>`).join('')}</div>`:'');
+}
+function openLab(id){
+  if(id&&Date.now()-(window._scrubAt||0)<500) return;
+  const l=id?DB.labs.find(x=>x.id===id):{name:'',unit:'',lo:null,hi:null,cat:'Other'};
+  if(!l) return;
+  const rs=id?labResultsOf(id):[];
+  const cats=[...new Set([...LAB_CAT_ORDER,...DB.labs.map(x=>x.cat||'Other')])];
+  const nb=v=>v==null?'':v;
+  openModal(`<h3>${id?esc(l.name):'New lab'}</h3>
+    ${rs.length?labChart(l,rs,true):''}
+    ${id?`${rs.slice().reverse().map(r=>{ const f=labOut(r,l); return `<div class="listrow"><span>${dayLabel(r.date)}</span>
+        <div class="r-val"><span class="num ${f?'bad':''}">${esc(r.q)}${r.v} ${esc(l.unit||'')}${f?' '+f.toUpperCase():''}</span><button class="del" onclick="delLabResult('${r.id}','${id}')">×</button></div></div>`; }).join('')}
+      <div class="row" style="align-items:flex-end; margin-top:10px;">
+        <div><label>Date</label><input type="date" id="lrDate" value="${curDay()}"></div>
+        <div><label>Value</label><input type="number" step="any" inputmode="decimal" id="lrVal"></div>
+        <div><button class="btn secondary block" style="margin-bottom:10px;" onclick="addLabResult('${id}')">Add</button></div>
+      </div><hr style="border:none; border-top:1px solid var(--border); margin:6px 0 12px;">`:''}
+    <label>Name</label><input id="lbName" value="${esc(l.name)}" placeholder="e.g. Free Testosterone">
+    <div class="row">
+      <div><label>Unit</label><input id="lbUnit" value="${esc(l.unit||'')}" placeholder="pg/mL" autocapitalize="off"></div>
+      <div><label>Low</label><input type="number" step="any" inputmode="decimal" id="lbLo" value="${nb(l.lo)}"></div>
+      <div><label>High</label><input type="number" step="any" inputmode="decimal" id="lbHi" value="${nb(l.hi)}"></div>
+    </div>
+    <label>Category</label>
+    <select id="lbCat" onchange="document.getElementById('lbCatNew').hidden=this.value!=='__new'">
+      ${cats.map(c=>`<option ${c===(l.cat||'Other')?'selected':''}>${esc(c)}</option>`).join('')}<option value="__new">+ New category…</option></select>
+    <input id="lbCatNew" hidden placeholder="Category name">
+    ${id?`<div class="row"><button class="btn secondary" onclick="moveLab('${id}',-1)">↑ Move up</button><button class="btn secondary" onclick="moveLab('${id}',1)">↓ Move down</button></div>`:''}
+    <button class="btn block" style="margin-top:4px;" onclick="saveLab(${id?`'${id}'`:'null'})">${id?'Save':'Add lab'}</button>
+    ${id?`<button class="btn danger block" style="margin-top:8px;" onclick="delLab('${id}')">Delete lab</button>`:''}
+    <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Close</button>`);
+}
+function saveLab(id){
+  const name=document.getElementById('lbName').value.trim();
+  if(!name){ toast('Name required'); return; }
+  const num=v=>v.trim()===''?null:+v;
+  let cat=document.getElementById('lbCat').value;
+  if(cat==='__new') cat=document.getElementById('lbCatNew').value.trim()||'Other';
+  const other=findLab(name);
+  if(other&&other.id!==id){ toast('A lab with that name already exists'); return; }
+  let l=id?DB.labs.find(x=>x.id===id):null;
+  if(!l){ if(cat==='Other') cat=guessLabCat(name); l={id:uid(),order:0}; DB.labs.push(l); }
+  if(l.cat!==cat) l.order=Math.max(0,...labsIn(cat).map(x=>x.order||0))+1;
+  Object.assign(l,{name,unit:document.getElementById('lbUnit').value.trim(),lo:num(document.getElementById('lbLo').value),hi:num(document.getElementById('lbHi').value),cat});
+  save(); renderLabs();
+  if(id){ openLab(id); toast('Saved'); } else { closeModal(); toast('Lab added — paste or add results any time'); }
+}
+function moveLab(id,dir){
+  const l=DB.labs.find(x=>x.id===id), list=labsIn(l.cat||'Other');
+  list.forEach((x,i)=>x.order=i);
+  const i=list.indexOf(l), j=i+dir;
+  if(j<0||j>=list.length){ toast(dir<0?'Already first':'Already last'); return; }
+  [list[i].order,list[j].order]=[list[j].order,list[i].order];
+  save(); renderLabs(); toast(dir<0?'Moved up':'Moved down');
+}
+function delLab(id){
+  const n=labResultsOf(id).length;
+  askConfirm(`Delete this lab${n?` and its ${n} result${n>1?'s':''}`:''}?`,'Delete lab',()=>{
+    DB.labs=DB.labs.filter(l=>l.id!==id); DB.labResults=DB.labResults.filter(r=>r.labId!==id);
+    save(); renderLabs(); toast('Lab deleted');
+  },()=>openLab(id));
+}
+function addLabResult(id){
+  const v=document.getElementById('lrVal').value, date=document.getElementById('lrDate').value||curDay();
+  if(v.trim()===''){ toast('Enter a value'); return; }
+  DB.labResults=DB.labResults.filter(r=>!(r.labId===id&&r.date===date));
+  DB.labResults.push({id:uid(),labId:id,date,v:+v,q:'',lo:null,hi:null});
+  save(); renderLabs(); openLab(id); toast('Result added');
+}
+function delLabResult(rid,id){ DB.labResults=DB.labResults.filter(r=>r.id!==rid); save(); renderLabs(); openLab(id); }
+
 /* ============ goals ============ */
 function goalRef(lb){ return lb?[{v:W(lb),label:'★'+W(lb),color:'var(--good)'}]:[]; }
 function bwGoalText(latestLb){
@@ -1703,7 +2117,7 @@ function delSet(id){ DB.sets=DB.sets.filter(s=>s.id!==id); save(); renderLifts()
 function setChartMetric(m){ chartMetric=m; renderLogLiftChart(); }
 
 /* ============ body: weight, bp, sleep ============ */
-function renderBody(){ renderBodyweight(); renderBp(); renderSleepChart(); renderSleepHistory(); }
+function renderBody(){ renderBodyweight(); renderBp(); renderSleepChart(); renderSleepHistory(); renderLabs(); }
 function logBodyweight(){
   const w=toLb(+document.getElementById('bwInput').value);
   if(!w){ toast('Enter a weight'); return; }
@@ -2002,18 +2416,13 @@ function logDose(){
 /* ============ settings ============ */
 let comboSquat,comboBench,comboDead;
 function renderSettings(){
-  renderColors();
+  renderColors(); renderSync();
   if(!comboSquat){
     comboSquat=new Combo('comboSquat',{placeholder:'Pick squat variation',getItems:exItems});
     comboBench=new Combo('comboBench',{placeholder:'Pick bench variation',getItems:exItems});
     comboDead=new Combo('comboDead',{placeholder:'Pick deadlift variation',getItems:exItems});
   }
   comboSquat.setSelection(DB.sbd.squat); comboBench.setSelection(DB.sbd.bench); comboDead.setSelection(DB.sbd.deadlift);
-  if(!document.getElementById('bwDate').value) document.getElementById('bwDate').value=todayStr();
-  const bw=DB.bloodwork.slice().sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('bwHistoryList').innerHTML=bw.length?bw.map(p=>`
-    <div class="listrow"><div><div class="r-title">${p.date}</div><div class="r-sub">${esc(p.markers).replace(/\n/g,' · ')}${p.notes?' — '+esc(p.notes):''}</div></div>
-    <button class="del" onclick="delBw('${p.id}')">×</button></div>`).join(''):'<div class="empty">No panels logged</div>';
   document.getElementById('tCarb').value=DB.targets.carb||'';
   document.getElementById('tProt').value=DB.targets.prot||'';
   document.getElementById('tFat').value=DB.targets.fat||'';
@@ -2027,15 +2436,7 @@ function saveSbd(){
   DB.sbd={squat:comboSquat.value||DB.sbd.squat,bench:comboBench.value||DB.sbd.bench,deadlift:comboDead.value||DB.sbd.deadlift};
   save(); toast('Lifts saved');
 }
-function logBloodwork(){
-  const date=document.getElementById('bwDate').value||todayStr();
-  const markers=document.getElementById('bwMarkers').value.trim();
-  if(!markers){ toast('Enter at least one marker'); return; }
-  DB.bloodwork.push({id:uid(),date,markers,notes:document.getElementById('bwNotes').value.trim()});
-  save(); document.getElementById('bwMarkers').value=''; document.getElementById('bwNotes').value='';
-  renderSettings(); toast('Panel saved');
-}
-function delBw(id){ DB.bloodwork=DB.bloodwork.filter(b=>b.id!==id); save(); renderSettings(); }
+function delBw(id){ DB.bloodwork=DB.bloodwork.filter(b=>b.id!==id); save(); renderLabs(); }
 function saveTargets(){
   DB.targets={carb:+document.getElementById('tCarb').value||0,prot:+document.getElementById('tProt').value||0,fat:+document.getElementById('tFat').value||0};
   save(); toast('Targets saved');
@@ -2075,8 +2476,9 @@ function importData(){
   r.readAsText(file);
 }
 function resetAll(){
-  askConfirm('Erase all local data? This cannot be undone.','Erase everything',()=>{
-    DB=defaultStore(); save(); applyTheme(); toast('Erased'); showView('dash');
+  askConfirm(SYNC?'Erase all data on this device? Sync will be turned off here first, so your synced copy on GitHub is kept.':'Erase all local data? This cannot be undone.','Erase everything',()=>{
+    SYNC=null; saveSyncCfg();
+    DB=defaultStore(); SNAP=null; save(); stamp(true); applyTheme(); toast('Erased'); showView('dash');
   });
 }
 
@@ -2101,6 +2503,7 @@ applyTheme();
 initCollapsibles();
 showView('dash');
 renderSession();
+if(SYNC) syncNow();
 </script>
 </body>
 </html>
