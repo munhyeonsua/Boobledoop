@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bloobledoop</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bloobledoop">
+<meta name="theme-color" content="#15161A">
+<link rel="apple-touch-icon" href="icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F3ED; --panel:#FFFFFF; --panel-2:#EDEAE2; --border:#D8D4C8;
+    --text:#1B1C1A; --muted:#6B6D66; --accent:#B8792E; --accent2:#9C3F37;
+    --good:#4C7A3D; --blue:#3A6EA5; --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15161A; --panel:#1E2024; --panel-2:#24262B; --border:#2E3036;
+      --text:#E7E5DE; --muted:#8B8E94; --accent:#D9A441; --accent2:#C1554A; --good:#7FA65A; --blue:#6FA3DC;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15161A; --panel:#1E2024; --panel-2:#24262B; --border:#2E3036;
+    --text:#E7E5DE; --muted:#8B8E94; --accent:#D9A441; --accent2:#C1554A; --good:#7FA65A; --blue:#6FA3DC;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased;}
+  .app{display:flex; flex-direction:column; height:100%; max-width:560px; margin:0 auto;}
+  header{
+    padding:14px 18px 10px; border-bottom:1px solid var(--border);
+    padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:baseline; justify-content:space-between;
+  }
+  header h1{font-size:17px; margin:0; font-weight:600; letter-spacing:0.2px;}
+  header .date{font-family:var(--mono); font-size:12px; color:var(--muted);}
+  main{flex:1; overflow-y:auto; padding:14px 16px 90px;}
+  nav.tabs{
+    position:fixed; left:0; right:0; bottom:0; max-width:560px; margin:0 auto;
+    display:flex; background:var(--panel); border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom,0px); z-index:30;
+  }
+  nav.tabs button{
+    flex:1; background:none; border:none; color:var(--muted); font-family:var(--sans);
+    font-size:10.5px; padding:9px 2px 8px; display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  nav.tabs button .ic{font-size:17px;}
+  nav.tabs button.active{color:var(--accent);}
+  section.view{display:none;}
+  section.view.active{display:block;}
+  h2.section-title{font-size:13px; color:var(--muted); margin:18px 0 8px; font-weight:600;}
+  h2.section-title:first-child{margin-top:0;}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px;}
+  .row{display:flex; gap:10px;}
+  .row > *{flex:1; min-width:0;}
+  label{display:block; font-size:11.5px; color:var(--muted); margin-bottom:4px;}
+  input, select, textarea{
+    width:100%; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:9px 10px; border-radius:7px; font-family:var(--sans); font-size:14.5px; margin-bottom:10px;
+  }
+  input[type="number"]{font-family:var(--mono);}
+  button.btn{background:var(--accent); color:#191A16; border:none; border-radius:7px; padding:10px 14px; font-family:var(--sans); font-weight:600; font-size:13.5px;}
+  button.btn.secondary{background:var(--panel-2); color:var(--text); border:1px solid var(--border); font-weight:500;}
+  button.btn.danger{background:var(--accent2); color:#fff;}
+  button.btn.block{width:100%;}
+  button.chip{background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:20px; padding:6px 12px; font-size:12.5px; margin:0 6px 6px 0; font-family:var(--sans);}
+  button.chip.on{background:var(--accent); color:#191A16; border-color:var(--accent);}
+  .num{font-family:var(--mono);}
+  .big{font-size:26px; font-weight:600; font-family:var(--mono);}
+  .muted{color:var(--muted);}
+  .flexrow{display:flex; justify-content:space-between; align-items:center;}
+  .bar{height:7px; border-radius:4px; background:var(--panel-2); overflow:hidden; margin:6px 0 2px;}
+  .bar > div{height:100%; background:var(--accent);}
+  .bar.over > div{background:var(--accent2);}
+  .listrow{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); font-size:13.5px;}
+  .listrow:last-child{border-bottom:none;}
+  .listrow .r-title{font-weight:500;}
+  .listrow .r-sub{color:var(--muted); font-size:11.5px;}
+  .listrow .r-val{font-family:var(--mono); text-align:right; white-space:nowrap;}
+  .del{background:none; border:none; color:var(--accent2); font-size:12px; padding:2px 6px;}
+  .empty{color:var(--muted); font-size:13px; padding:10px 0; text-align:center;}
+  .tag{font-size:10.5px; padding:2px 7px; border-radius:10px; font-family:var(--mono);}
+  .tag.medication{background:rgba(184,121,46,0.18); color:var(--accent);}
+  .tag.steroid{background:rgba(193,85,74,0.18); color:var(--accent2);}
+  .tag.peptide{background:rgba(76,122,61,0.18); color:var(--good);}
+  .tag.supplement{background:rgba(58,110,165,0.18); color:var(--blue);}
+  svg text{font-family:var(--mono); fill:var(--muted);}
+  .toast{
+    position:fixed; bottom:70px; left:16px; right:16px; max-width:528px; margin:0 auto;
+    background:var(--text); color:var(--bg); padding:10px 14px; border-radius:8px; font-size:13px;
+    opacity:0; transform:translateY(8px); transition:all .2s; pointer-events:none; z-index:50;
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+  details summary{cursor:pointer; font-size:12.5px; color:var(--muted); margin-bottom:8px;}
+
+  .combo{position:relative; margin-bottom:10px;}
+  .combo input{margin-bottom:0;}
+  .combo .combo-list{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:20;
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    max-height:210px; overflow-y:auto; box-shadow:0 6px 20px rgba(0,0,0,.18);
+  }
+  .combo .combo-list[hidden]{display:none;}
+  .combo .combo-item{padding:9px 11px; font-size:14px; border-bottom:1px solid var(--border); cursor:pointer;}
+  .combo .combo-item:last-child{border-bottom:none;}
+  .combo .combo-item.hl{background:var(--panel-2);}
+  .combo .combo-item .ci-sub{display:block; font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:2px;}
+  .combo .combo-none{padding:9px 11px; font-size:13px; color:var(--muted);}
+
+  /* SBD strip */
+  .sbd{display:flex; gap:8px;}
+  .sbd .lift{flex:1; min-width:0; text-align:left;}
+  .sbd .lift .lname{font-size:11px; color:var(--muted); margin-bottom:2px;}
+  .sbd .lift .lval{font-family:var(--mono); font-size:21px; font-weight:600; line-height:1.1;}
+  .sbd .lift .lsub{font-family:var(--mono); font-size:10px; color:var(--muted);}
+  .sbd .lift svg{display:block; margin-top:4px; width:100%; height:28px;}
+  .sbd .lift.na .lval{color:var(--muted); font-size:16px;}
+  .total-line{margin-top:10px; padding-top:9px; border-top:1px solid var(--border);}
+
+  /* med checklist */
+  .med{display:flex; align-items:center; gap:11px; padding:10px 0; border-bottom:1px solid var(--border);}
+  .med:last-child{border-bottom:none;}
+  .med .box{
+    width:26px; height:26px; flex:0 0 26px; border-radius:7px; border:1.5px solid var(--border);
+    background:var(--panel-2); display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:transparent;
+  }
+  .med.done .box{background:var(--good); border-color:var(--good); color:#fff;}
+  .med .mid{flex:1; min-width:0;}
+  .med .mname{font-weight:500; font-size:14px;}
+  .med.done .mname{color:var(--muted); text-decoration:line-through;}
+  .med .msub{font-size:11.5px; color:var(--muted); font-family:var(--mono);}
+  .med .mtime{font-family:var(--mono); font-size:12px; color:var(--muted); white-space:nowrap;}
+  .med.done .mtime{color:var(--good);}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Bloobledoop</h1>
+    <span class="date num" id="todayLabel"></span>
+  </header>
+  <main id="main">
+
+    <!-- TODAY -->
+    <section class="view active" id="view-dash">
+      <div class="card" id="sbdCard"></div>
+      <h2 class="section-title">Macros</h2>
+      <div class="card" id="macroCard"></div>
+      <div class="card" id="suggestCard"></div>
+      <h2 class="section-title">Bodyweight</h2>
+      <div class="card" id="dashBw"></div>
+      <h2 class="section-title">Meds today</h2>
+      <div class="card" id="dashMeds"></div>
+      <h2 class="section-title">Recent lifts</h2>
+      <div class="card" id="dashLifts"></div>
+      <h2 class="section-title">Sleep</h2>
+      <div class="card" id="dashSleep"></div>
+    </section>
+
+    <!-- FOOD -->
+    <section class="view" id="view-food">
+      <h2 class="section-title">Log a meal</h2>
+      <div class="card">
+        <label>Food — type to search</label>
+        <div class="combo" id="comboFood"></div>
+        <div class="row">
+          <div><label>Servings</label><input type="number" id="logServings" step="0.25" value="1"></div>
+          <div><label>Meal</label>
+            <select id="logMealType">
+              <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn block" onclick="logMeal()">Log meal</button>
+      </div>
+      <h2 class="section-title">Today's log</h2>
+      <div class="card" id="todayMealsList"></div>
+      <h2 class="section-title">Food library</h2>
+      <div class="card">
+        <label>Name</label><input id="fName" placeholder="e.g. Chicken breast, 200g">
+        <div class="row">
+          <div><label>Carbs (g)</label><input type="number" id="fCarb" value="0"></div>
+          <div><label>Protein (g)</label><input type="number" id="fProt" value="0"></div>
+          <div><label>Fat (g)</label><input type="number" id="fFat" value="0"></div>
+        </div>
+        <button class="btn block" onclick="addFood()">Add to library</button>
+      </div>
+      <div class="card">
+        <input id="foodFilter" placeholder="Search library" oninput="renderFoodLibrary()">
+        <div id="foodLibraryList"></div>
+      </div>
+    </section>
+
+    <!-- LIFTS -->
+    <section class="view" id="view-lifts">
+      <h2 class="section-title">Log a set</h2>
+      <div class="card">
+        <label>Exercise — type to search</label>
+        <div class="combo" id="comboLift"></div>
+        <div class="row">
+          <div><label>Weight (lb)</label><input type="number" id="liftWeight" step="2.5"></div>
+          <div><label>Reps</label><input type="number" id="liftReps" step="1"></div>
+        </div>
+        <div class="flexrow" style="margin-bottom:8px;">
+          <span class="muted" style="font-size:12px;">Track RPE for this lift</span>
+          <button class="chip" id="rpeToggle" onclick="toggleRpe()" style="margin:0;">Off</button>
+        </div>
+        <div id="rpeField" hidden>
+          <label>RPE (6–10, half points ok)</label>
+          <input type="number" id="liftRpe" step="0.5" min="5" max="10" placeholder="e.g. 8.5">
+        </div>
+        <button class="btn block" onclick="logSet()">Log set</button>
+        <div id="liftLastHint" class="muted" style="font-size:12px; margin-top:8px;"></div>
+      </div>
+
+      <h2 class="section-title">Lift library</h2>
+      <div class="card">
+        <label>New exercise</label>
+        <input id="newExName" placeholder="e.g. Bench press">
+        <div class="row">
+          <div><label>Category</label>
+            <select id="newExCat">
+              <option>Push</option><option>Pull</option><option>Legs</option><option>Core</option><option>Other</option>
+            </select>
+          </div>
+          <div style="display:flex; align-items:flex-end; margin-bottom:10px;">
+            <button class="btn secondary block" onclick="addExercise()">Add exercise</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <input id="exFilter" placeholder="Search exercises" oninput="renderExLibrary()">
+        <div id="exLibraryList"></div>
+      </div>
+
+      <h2 class="section-title">Progress</h2>
+      <div class="card">
+        <label>Exercise — type to search</label>
+        <div class="combo" id="comboChart"></div>
+        <div class="row" style="margin-bottom:6px;">
+          <div><button class="btn secondary block" id="metricTopSet" onclick="setChartMetric('top')">Top set</button></div>
+          <div><button class="btn secondary block" id="metricE1RM" onclick="setChartMetric('e1rm')">Est. 1RM</button></div>
+        </div>
+        <div id="liftChartWrap"></div>
+      </div>
+
+      <h2 class="section-title">Bodyweight</h2>
+      <div class="card">
+        <div class="row">
+          <div><label>Weight (lb)</label><input type="number" id="bwInput" step="0.2"></div>
+          <div style="display:flex; align-items:flex-end; margin-bottom:10px;">
+            <button class="btn block" onclick="logBodyweight()">Log bodyweight</button>
+          </div>
+        </div>
+        <div id="bwStat" class="muted" style="font-size:12.5px; margin-bottom:8px;"></div>
+        <div id="bwChartWrap"></div>
+      </div>
+      <div class="card" id="bwList"></div>
+
+      <h2 class="section-title">Set history</h2>
+      <div class="card" id="liftHistoryList"></div>
+    </section>
+
+    <!-- MEDS -->
+    <section class="view" id="view-meds">
+      <h2 class="section-title">Today</h2>
+      <div class="card" id="medTodayList"></div>
+
+      <h2 class="section-title">Add to schedule</h2>
+      <div class="card">
+        <label>Category</label>
+        <div id="medCatChips">
+          <button class="chip on" data-v="Medication" onclick="pickChip(this,'medCatChips')">Medication</button>
+          <button class="chip" data-v="Steroid" onclick="pickChip(this,'medCatChips')">Steroid</button>
+          <button class="chip" data-v="Peptide" onclick="pickChip(this,'medCatChips')">Peptide</button>
+          <button class="chip" data-v="Supplement" onclick="pickChip(this,'medCatChips')">Supplement</button>
+        </div>
+        <label>Name</label><input id="medName" placeholder="e.g. Testosterone cypionate">
+        <div class="row">
+          <div><label>Dose</label><input type="number" id="medDose" step="any"></div>
+          <div><label>Unit</label><input id="medUnit" placeholder="mg / IU / mcg"></div>
+        </div>
+        <label>Times of day (comma-separated, 24h)</label>
+        <input id="medTimes" placeholder="08:00, 20:00">
+        <label>Schedule</label>
+        <select id="medFreq" onchange="onFreqChange()">
+          <option value="daily">Every day</option>
+          <option value="days">Specific days of week</option>
+          <option value="interval">Every N days</option>
+        </select>
+        <div id="medDaysWrap" hidden>
+          <label>Days</label>
+          <div id="medDayChips">
+            <button class="chip" data-d="1" onclick="this.classList.toggle('on')">Mon</button>
+            <button class="chip" data-d="2" onclick="this.classList.toggle('on')">Tue</button>
+            <button class="chip" data-d="3" onclick="this.classList.toggle('on')">Wed</button>
+            <button class="chip" data-d="4" onclick="this.classList.toggle('on')">Thu</button>
+            <button class="chip" data-d="5" onclick="this.classList.toggle('on')">Fri</button>
+            <button class="chip" data-d="6" onclick="this.classList.toggle('on')">Sat</button>
+            <button class="chip" data-d="0" onclick="this.classList.toggle('on')">Sun</button>
+          </div>
+        </div>
+        <div id="medIntervalWrap" hidden>
+          <label>Every N days (starting today)</label>
+          <input type="number" id="medInterval" min="2" value="3">
+        </div>
+        <button class="btn block" onclick="saveMed()">Save to schedule</button>
+        <button class="btn secondary block" id="medCancelEdit" onclick="cancelMedEdit()" hidden style="margin-top:8px;">Cancel edit</button>
+      </div>
+
+      <h2 class="section-title">Schedule</h2>
+      <div class="card" id="medScheduleList"></div>
+
+      <h2 class="section-title">Log an unscheduled dose</h2>
+      <div class="card">
+        <label>Substance — type to search or enter new</label>
+        <div class="combo" id="comboDose"></div>
+        <div class="row">
+          <div><label>Amount</label><input type="number" id="doseAmount" step="any"></div>
+          <div><label>Unit</label><input id="doseUnit" placeholder="mg / IU / mcg"></div>
+        </div>
+        <button class="btn block" onclick="logDose()">Log dose now</button>
+      </div>
+
+      <h2 class="section-title">Dose history</h2>
+      <div class="card" id="doseHistoryList"></div>
+    </section>
+
+    <!-- SLEEP -->
+    <section class="view" id="view-sleep">
+      <h2 class="section-title">Log last night</h2>
+      <div class="card">
+        <div class="row">
+          <div><label>Bedtime</label><input type="time" id="sleepBed"></div>
+          <div><label>Wake time</label><input type="time" id="sleepWake"></div>
+        </div>
+        <label>Quality (1–5)</label>
+        <input type="number" id="sleepQuality" min="1" max="5" value="3">
+        <button class="btn block" onclick="logSleep()">Log sleep</button>
+      </div>
+      <h2 class="section-title">Last 14 nights</h2>
+      <div class="card"><div id="sleepChartWrap"></div></div>
+      <div class="card" id="sleepHistoryList"></div>
+    </section>
+
+    <!-- MORE -->
+    <section class="view" id="view-settings">
+      <h2 class="section-title">Powerlifting lifts</h2>
+      <div class="card">
+        <p class="muted" style="font-size:12px; margin-top:0;">Pick which exercises drive the squat / bench / deadlift readout on Today.</p>
+        <label>Squat</label><div class="combo" id="comboSquat"></div>
+        <label>Bench</label><div class="combo" id="comboBench"></div>
+        <label>Deadlift</label><div class="combo" id="comboDead"></div>
+        <button class="btn block" onclick="saveSbd()">Save lifts</button>
+      </div>
+
+      <h2 class="section-title">Bloodwork</h2>
+      <div class="card">
+        <label>Date</label><input type="date" id="bwDate">
+        <label>Markers (one per line)</label>
+        <textarea id="bwMarkers" rows="4" style="font-family:var(--mono); font-size:13px;" placeholder="Total T: 650 ng/dL&#10;LDL: 110 mg/dL&#10;ALT: 28 U/L"></textarea>
+        <label>Notes</label><input id="bwNotes">
+        <button class="btn block" onclick="logBloodwork()">Save panel</button>
+      </div>
+      <div class="card" id="bwHistoryList"></div>
+
+      <h2 class="section-title">Daily macro targets</h2>
+      <div class="card">
+        <div class="row">
+          <div><label>Carbs (g)</label><input type="number" id="tCarb"></div>
+          <div><label>Protein (g)</label><input type="number" id="tProt"></div>
+          <div><label>Fat (g)</label><input type="number" id="tFat"></div>
+        </div>
+        <button class="btn block" onclick="saveTargets()">Save targets</button>
+        <details style="margin-top:10px;">
+          <summary>Auto-calculate from bodyweight</summary>
+          <label>Bodyweight (lb) — latest log fills in automatically</label>
+          <input type="number" id="calcBw">
+          <label>Goal</label>
+          <select id="goalSelect"><option value="cut">Cut</option><option value="maintain">Maintain</option><option value="bulk">Bulk</option></select>
+          <button class="btn secondary block" onclick="autoTargets()">Calculate & fill in</button>
+        </details>
+      </div>
+
+      <h2 class="section-title">Reminders</h2>
+      <div class="card">
+        <p class="muted" style="font-size:12px; margin-top:0;">These fire in-page and as browser notifications while Bloobledoop is open. Scheduled med times alert automatically. For alerts when the app is closed, ask Claude in chat to set native Reminders.</p>
+        <button class="btn secondary block" onclick="askNotifPermission()" style="margin-bottom:10px;">Enable browser notifications</button>
+        <label>Meal times (comma-separated, 24h HH:MM)</label><input id="mealTimes" placeholder="07:00, 12:00, 19:00">
+        <label>Wind-down / sleep reminder</label><input type="time" id="sleepReminderTime">
+        <label>Bloodwork reminder — day of month</label><input type="number" id="bwDay" min="1" max="28">
+        <button class="btn block" onclick="saveReminders()">Save reminders</button>
+      </div>
+
+      <h2 class="section-title">Data</h2>
+      <div class="card">
+        <button class="btn secondary block" onclick="exportData()" style="margin-bottom:8px;">Export backup (JSON)</button>
+        <label>Import backup</label>
+        <input type="file" id="importFile" accept="application/json">
+        <button class="btn secondary block" onclick="importData()" style="margin-bottom:8px;">Import</button>
+        <button class="btn danger block" onclick="resetAll()">Erase all data</button>
+      </div>
+    </section>
+
+  </main>
+  <nav class="tabs">
+    <button class="active" data-view="dash" onclick="showView('dash')"><span class="ic">◆</span>Today</button>
+    <button data-view="food" onclick="showView('food')"><span class="ic">◇</span>Food</button>
+    <button data-view="lifts" onclick="showView('lifts')"><span class="ic">▲</span>Lifts</button>
+    <button data-view="meds" onclick="showView('meds')"><span class="ic">✚</span>Meds</button>
+    <button data-view="sleep" onclick="showView('sleep')"><span class="ic">☾</span>Sleep</button>
+    <button data-view="settings" onclick="showView('settings')"><span class="ic">⚙</span>More</button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ storage ============ */
+const STORE_KEY = 'physio_v1';
+function defaultStore(){
+  return {
+    foods: [], meals: [], exercises: [], sets: [], sleep: [],
+    bloodwork: [], doses: [], bodyweight: [], rpeExercises: [],
+    medSchedule: [], medLog: [],
+    sbd: {squat:null, bench:null, deadlift:null},
+    targets: {carb:0,prot:0,fat:0},
+    reminders: {mealTimes:[], sleepTime:'', bwDay:null},
+    notifPermission:false
+  };
+}
+let DB;
+function load(){
+  try{ const raw=localStorage.getItem(STORE_KEY); DB = raw ? JSON.parse(raw) : defaultStore(); }
+  catch(e){ DB = defaultStore(); }
+  const d=defaultStore();
+  for(const k in d){ if(DB[k]===undefined) DB[k]=d[k]; }
+  if(DB.foods.length===0 && !DB._seeded){
+    DB.foods=[
+      {id:uid(),name:'Chicken breast (200g)',carb:0,prot:46,fat:5},
+      {id:uid(),name:'White rice, cooked (1 cup)',carb:45,prot:4,fat:0.4},
+      {id:uid(),name:'Whole eggs (2)',carb:1,prot:12,fat:10},
+      {id:uid(),name:'Greek yogurt (1 cup, nonfat)',carb:9,prot:23,fat:0.5},
+      {id:uid(),name:'Oats, dry (1 cup)',carb:54,prot:11,fat:5},
+      {id:uid(),name:'Banana (1 medium)',carb:27,prot:1,fat:0.4},
+      {id:uid(),name:'Almonds (1 oz)',carb:6,prot:6,fat:14},
+      {id:uid(),name:'Olive oil (1 tbsp)',carb:0,prot:0,fat:14},
+      {id:uid(),name:'Ground beef 90/10 (150g)',carb:0,prot:33,fat:11},
+      {id:uid(),name:'Sweet potato (1 medium)',carb:24,prot:2,fat:0.1}
+    ];
+    DB._seeded=true;
+  }
+  autoMatchSbd();
+  save();
+}
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }catch(e){ toast('Storage unavailable'); } }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function nowHM(){ return new Date().toTimeString().slice(0,5); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function autoMatchSbd(){
+  const find = re => { const e=DB.exercises.find(x=>re.test(x.name)); return e?e.id:null; };
+  if(!DB.sbd.squat)    DB.sbd.squat    = find(/squat/i);
+  if(!DB.sbd.bench)    DB.sbd.bench    = find(/bench/i);
+  if(!DB.sbd.deadlift) DB.sbd.deadlift = find(/dead ?lift/i);
+}
+
+/* ============ combobox ============ */
+class Combo{
+  constructor(root,opts){
+    this.root = typeof root==='string' ? document.getElementById(root) : root;
+    this.getItems=opts.getItems; this.onChange=opts.onChange||(()=>{});
+    this.allowFree=!!opts.allowFree; this.selectedId=null; this.hl=-1;
+    this.root.innerHTML=`<input type="text" placeholder="${opts.placeholder||'Search'}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"><div class="combo-list" hidden></div>`;
+    this.input=this.root.querySelector('input'); this.list=this.root.querySelector('.combo-list');
+    this.input.addEventListener('focus',()=>{ this.input.select(); this.open(); });
+    this.input.addEventListener('input',()=>{ this.selectedId=null; this.open(); });
+    this.input.addEventListener('keydown',e=>this.key(e));
+    this.input.addEventListener('blur',()=>setTimeout(()=>this.close(),160));
+  }
+  get value(){ return this.selectedId; }
+  get text(){ return this.input.value.trim(); }
+  clear(){ this.input.value=''; this.selectedId=null; }
+  setSelection(id){
+    const it=(this.getItems()||[]).find(x=>x.id===id);
+    if(it){ this.selectedId=it.id; this.input.value=it.label; }
+  }
+  filtered(){
+    const q=this.input.value.trim().toLowerCase(), items=this.getItems()||[];
+    if(!q) return items.slice(0,60);
+    const toks=q.split(/\s+/);
+    return items.filter(it=>{ const hay=(it.label+' '+(it.sub||'')).toLowerCase(); return toks.every(t=>hay.includes(t)); }).slice(0,60);
+  }
+  open(){
+    const items=this.filtered(); this.cur=items;
+    if(items.length===0){
+      this.list.innerHTML=`<div class="combo-none">${this.allowFree?'No match — will be saved as new':'No matches'}</div>`;
+    } else {
+      this.list.innerHTML=items.map((it,i)=>`<div class="combo-item${i===this.hl?' hl':''}" data-i="${i}">${esc(it.label)}${it.sub?`<span class="ci-sub">${esc(it.sub)}</span>`:''}</div>`).join('');
+      this.list.querySelectorAll('.combo-item').forEach(el=>el.addEventListener('mousedown',e=>{ e.preventDefault(); this.pick(+el.dataset.i); }));
+    }
+    this.list.hidden=false;
+  }
+  close(){ this.list.hidden=true; this.hl=-1; }
+  pick(i){ const it=this.cur[i]; if(!it) return; this.selectedId=it.id; this.input.value=it.label; this.close(); this.onChange(it.id,it); }
+  key(e){
+    if(this.list.hidden) return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); this.hl=Math.min((this.cur||[]).length-1,this.hl+1); this.open(); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); this.hl=Math.max(0,this.hl-1); this.open(); }
+    else if(e.key==='Enter'){
+      if(this.hl>=0){ e.preventDefault(); this.pick(this.hl); }
+      else if((this.cur||[]).length===1){ e.preventDefault(); this.pick(0); }
+      else this.close();
+    } else if(e.key==='Escape'){ this.close(); }
+  }
+}
+
+/* ============ nav ============ */
+function showView(name){
+  document.querySelectorAll('section.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  document.getElementById('main').scrollTop=0;
+  ({dash:renderDash, food:renderFood, lifts:renderLifts, meds:renderMeds, sleep:renderSleep, settings:renderSettings}[name])();
+}
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function pickChip(el,groupId){
+  document.querySelectorAll('#'+groupId+' .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ============ macros ============ */
+function macrosForDay(dateStr){
+  const t={carb:0,prot:0,fat:0,cal:0};
+  DB.meals.filter(m=>m.date===dateStr).forEach(m=>{
+    const f=DB.foods.find(x=>x.id===m.foodId); if(!f) return;
+    t.carb+=f.carb*m.servings; t.prot+=f.prot*m.servings; t.fat+=f.fat*m.servings;
+  });
+  t.cal=t.carb*4+t.prot*4+t.fat*9; return t;
+}
+function macroBar(label,have,target,unit){
+  const pct=target>0?Math.min(100,(have/target)*100):0, over=target>0&&have>target;
+  return `<div style="margin-bottom:10px;">
+    <div class="flexrow"><span>${label}</span><span class="num">${Math.round(have)} / ${target||'—'} ${unit}</span></div>
+    <div class="bar ${over?'over':''}"><div style="width:${pct}%"></div></div></div>`;
+}
+
+/* ============ lift math ============ */
+function e1rm(w,r){ return w*(1+r/30); }
+function exStats(exId){
+  const rows=DB.sets.filter(s=>s.exId===exId);
+  if(rows.length===0) return null;
+  let best=rows[0], bestE=rows[0];
+  rows.forEach(s=>{ if(s.weight>best.weight) best=s; if(e1rm(s.weight,s.reps)>e1rm(bestE.weight,bestE.reps)) bestE=s; });
+  const sorted=rows.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  return {count:rows.length, best, bestE1RM:e1rm(bestE.weight,bestE.reps), last:sorted[sorted.length-1]};
+}
+function dailyE1RM(exId){
+  const byDate={};
+  DB.sets.filter(s=>s.exId===exId).forEach(s=>{ byDate[s.date]=Math.max(byDate[s.date]||0, e1rm(s.weight,s.reps)); });
+  return Object.keys(byDate).sort().map(d=>({date:d, v:byDate[d]}));
+}
+
+/* ============ dashboard ============ */
+function sparkline(vals,color){
+  const W=100,H=28,pad=3;
+  if(vals.length<2) return `<svg viewBox="0 0 ${W} ${H}"></svg>`;
+  const min=Math.min(...vals), max=Math.max(...vals), span=(max-min)||1;
+  const x=i=>pad+(i/(vals.length-1))*(W-2*pad);
+  const y=v=>H-pad-((v-min)/span)*(H-2*pad);
+  const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+    <circle cx="${x(vals.length-1).toFixed(1)}" cy="${y(vals[vals.length-1]).toFixed(1)}" r="2" fill="${color}"/></svg>`;
+}
+function renderSbd(){
+  const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#D9A441';
+  const defs=[['Squat','squat'],['Bench','bench'],['Deadlift','deadlift']];
+  let total=0, haveAll=true;
+  const cells=defs.map(([label,key])=>{
+    const exId=DB.sbd[key];
+    const series=exId?dailyE1RM(exId):[];
+    if(series.length===0){ haveAll=false; return `<div class="lift na"><div class="lname">${label}</div><div class="lval">—</div><div class="lsub">no data</div></div>`; }
+    const latest=series[series.length-1];
+    const st=exStats(exId);
+    total+=latest.v;
+    const prev=series.length>1?series[series.length-2].v:null;
+    const delta=prev!==null?latest.v-prev:null;
+    return `<div class="lift">
+      <div class="lname">${label}</div>
+      <div class="lval">${Math.round(latest.v)}</div>
+      <div class="lsub">${st.best.weight}×${st.best.reps}${delta!==null?` · ${delta>=0?'+':''}${Math.round(delta)}`:''}</div>
+      ${sparkline(series.map(p=>p.v),accent)}</div>`;
+  }).join('');
+  const bw=DB.bodyweight.slice().sort((a,b)=>a.date.localeCompare(b.date)).pop();
+  const wilksish = haveAll && bw ? ` · ${(total/bw.weight).toFixed(2)}× bodyweight` : '';
+  document.getElementById('sbdCard').innerHTML = `
+    <div class="flexrow" style="margin-bottom:9px;"><span class="muted" style="font-size:12px;">Estimated 1RM — lb</span>
+      <span class="muted" style="font-size:11px;">set lifts in More</span></div>
+    <div class="sbd">${cells}</div>
+    ${haveAll?`<div class="total-line flexrow"><span class="muted" style="font-size:12px;">Est. total</span>
+      <span class="num" style="font-weight:600;">${Math.round(total)} lb${wilksish}</span></div>`:''}`;
+}
+function renderDash(){
+  document.getElementById('todayLabel').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  renderSbd();
+
+  const t=macrosForDay(todayStr()), T=DB.targets;
+  document.getElementById('macroCard').innerHTML=`
+    <div class="flexrow" style="margin-bottom:10px;"><span class="muted">Calories</span><span class="big">${Math.round(t.cal)}</span></div>
+    ${macroBar('Protein',t.prot,T.prot,'g')}${macroBar('Carbs',t.carb,T.carb,'g')}${macroBar('Fat',t.fat,T.fat,'g')}
+    ${(!T.carb&&!T.prot&&!T.fat)?'<div class="empty">Set targets in More → Daily macro targets</div>':''}`;
+
+  const rem={carb:Math.max(0,T.carb-t.carb),prot:Math.max(0,T.prot-t.prot),fat:Math.max(0,T.fat-t.fat)};
+  let html=`<div class="flexrow" style="margin-bottom:8px;"><span class="muted">What to eat next</span><span class="num muted">${Math.round(rem.prot)}P ${Math.round(rem.carb)}C ${Math.round(rem.fat)}F left</span></div>`;
+  if(DB.foods.length===0) html+='<div class="empty">Add foods to your library first</div>';
+  else if(rem.carb<=0&&rem.prot<=0&&rem.fat<=0&&(T.carb||T.prot||T.fat)) html+='<div class="empty">Targets met for today</div>';
+  else{
+    const scored=DB.foods.map(f=>({f,score:Math.abs(rem.prot-f.prot)*1.4+Math.abs(rem.carb-f.carb)*0.8+Math.abs(rem.fat-f.fat)*1.0-Math.min(f.prot,rem.prot)*0.6}))
+      .sort((a,b)=>a.score-b.score).slice(0,3);
+    html+=scored.map(s=>`<div class="listrow"><div><div class="r-title">${esc(s.f.name)}</div><div class="r-sub num">P${s.f.prot} · C${s.f.carb} · F${s.f.fat}</div></div></div>`).join('');
+  }
+  document.getElementById('suggestCard').innerHTML=html;
+
+  // bodyweight graph on Today
+  const bwRows=DB.bodyweight.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const bwEl=document.getElementById('dashBw');
+  if(bwRows.length===0) bwEl.innerHTML='<div class="empty">No bodyweight logged — add it in Lifts</div>';
+  else{
+    const latest=bwRows[bwRows.length-1];
+    const avg=a=>a.reduce((s,r)=>s+r.weight,0)/a.length;
+    const last7=bwRows.slice(-7), prev7=bwRows.slice(-14,-7);
+    let trend='';
+    if(prev7.length>=2){ const d=avg(last7)-avg(prev7); trend=`7-day avg ${avg(last7).toFixed(1)} (${d>=0?'+':''}${d.toFixed(1)} vs prior week)`; }
+    else if(last7.length>=2) trend=`7-day avg ${avg(last7).toFixed(1)}`;
+    bwEl.innerHTML=`<div class="flexrow" style="margin-bottom:8px;"><span class="big">${latest.weight}</span><span class="muted num" style="font-size:12px; text-align:right;">${trend||latest.date}</span></div>`
+      + (bwRows.length>=2?lineChart(bwRows.map(r=>r.date),bwRows.map(r=>r.weight)):'');
+  }
+
+  // meds today summary
+  const due=medsDueToday();
+  const el=document.getElementById('dashMeds');
+  if(due.length===0) el.innerHTML='<div class="empty">Nothing scheduled today</div>';
+  else{
+    const taken=due.filter(d=>d.log).length;
+    el.innerHTML=`<div class="flexrow" style="margin-bottom:6px;"><span class="muted">Taken</span><span class="num">${taken} / ${due.length}</span></div>`
+      + due.map(d=>`<div class="listrow"><div><div class="r-title">${esc(d.med.name)}</div><div class="r-sub">${d.time} · ${d.med.dose}${esc(d.med.unit||'')}</div></div>
+        <div class="r-val" style="color:${d.log?'var(--good)':'var(--muted)'}">${d.log?'✓ '+d.log.time:'pending'}</div></div>`).join('');
+  }
+
+  const recentEx=[...new Set(DB.sets.slice(-40).map(s=>s.exId))].slice(-3);
+  document.getElementById('dashLifts').innerHTML=recentEx.length?recentEx.map(exId=>{
+    const ex=DB.exercises.find(e=>e.id===exId);
+    const rows=DB.sets.filter(s=>s.exId===exId).sort((a,b)=>a.date.localeCompare(b.date));
+    const last=rows[rows.length-1];
+    return `<div class="listrow"><div><div class="r-title">${ex?esc(ex.name):'?'}</div><div class="r-sub">${last.date}</div></div><div class="r-val">${last.weight} × ${last.reps}${last.rpe?` <span style="color:var(--blue)">@${last.rpe}</span>`:''}</div></div>`;
+  }).join(''):'<div class="empty">No lifts logged yet</div>';
+
+  const ls=DB.sleep.slice().sort((a,b)=>b.date.localeCompare(a.date))[0];
+  document.getElementById('dashSleep').innerHTML=ls
+    ?`<div class="flexrow"><span>Last night</span><span class="num">${ls.hours.toFixed(1)} hrs · quality ${ls.quality}/5</span></div>`
+    :'<div class="empty">No sleep logged yet</div>';
+}
+
+/* ============ food ============ */
+let comboFood;
+function foodItems(){ return DB.foods.map(f=>({id:f.id,label:f.name,sub:`P${f.prot} C${f.carb} F${f.fat}`})); }
+function renderFood(){
+  if(!comboFood) comboFood=new Combo('comboFood',{placeholder:'Search foods',getItems:foodItems});
+  const todays=DB.meals.filter(m=>m.date===todayStr());
+  document.getElementById('todayMealsList').innerHTML=todays.length?todays.map(m=>{
+    const f=DB.foods.find(x=>x.id===m.foodId);
+    return `<div class="listrow"><div><div class="r-title">${f?esc(f.name):'?'}</div><div class="r-sub">${m.mealType} · ×${m.servings}</div></div>
+      <button class="del" onclick="delMeal('${m.id}')">remove</button></div>`;
+  }).join(''):'<div class="empty">Nothing logged today</div>';
+  renderFoodLibrary();
+}
+function renderFoodLibrary(){
+  const q=(document.getElementById('foodFilter').value||'').toLowerCase();
+  const list=DB.foods.filter(f=>f.name.toLowerCase().includes(q));
+  document.getElementById('foodLibraryList').innerHTML=list.length?list.map(f=>`
+    <div class="listrow"><div><div class="r-title">${esc(f.name)}</div><div class="r-sub num">P${f.prot} C${f.carb} F${f.fat} · ${Math.round(f.carb*4+f.prot*4+f.fat*9)} kcal</div></div>
+    <button class="del" onclick="delFood('${f.id}')">delete</button></div>`).join(''):'<div class="empty">No matches</div>';
+}
+function addFood(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){ toast('Name required'); return; }
+  DB.foods.push({id:uid(),name,carb:+document.getElementById('fCarb').value||0,prot:+document.getElementById('fProt').value||0,fat:+document.getElementById('fFat').value||0});
+  save(); document.getElementById('fName').value='';
+  ['fCarb','fProt','fFat'].forEach(i=>document.getElementById(i).value=0);
+  renderFood(); toast('Added to library');
+}
+function delFood(id){ DB.foods=DB.foods.filter(f=>f.id!==id); save(); renderFood(); }
+function logMeal(){
+  const foodId=comboFood.value;
+  if(!foodId){ toast('Pick a food from the list'); return; }
+  DB.meals.push({id:uid(),date:todayStr(),foodId,servings:+document.getElementById('logServings').value||1,mealType:document.getElementById('logMealType').value});
+  save(); comboFood.clear(); document.getElementById('logServings').value=1;
+  renderFood(); toast('Meal logged');
+}
+function delMeal(id){ DB.meals=DB.meals.filter(m=>m.id!==id); save(); renderFood(); }
+
+/* ============ lifts ============ */
+let comboLift, comboChart, chartMetric='top';
+function exItems(){
+  return DB.exercises.map(e=>{
+    const st=exStats(e.id);
+    return {id:e.id,label:e.name,sub:st?`best ${st.best.weight}×${st.best.reps} · e1RM ${Math.round(st.bestE1RM)}`:(e.cat||'no sets yet')};
+  });
+}
+function renderLifts(){
+  if(!comboLift) comboLift=new Combo('comboLift',{placeholder:'Search exercises',getItems:exItems,onChange:showLastHint});
+  if(!comboChart) comboChart=new Combo('comboChart',{placeholder:'Search exercises',getItems:exItems,onChange:renderLiftChart});
+  renderExLibrary(); renderLiftChart(); renderBodyweight();
+  const hist=DB.sets.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25);
+  document.getElementById('liftHistoryList').innerHTML=hist.length?hist.map(s=>{
+    const ex=DB.exercises.find(e=>e.id===s.exId);
+    return `<div class="listrow"><div><div class="r-title">${ex?esc(ex.name):'?'}</div><div class="r-sub">${s.date} · e1RM ${Math.round(e1rm(s.weight,s.reps))}</div></div>
+      <div class="r-val">${s.weight} × ${s.reps}${s.rpe?` <span style="color:var(--blue)">@${s.rpe}</span>`:''}<button class="del" onclick="delSet('${s.id}')">×</button></div></div>`;
+  }).join(''):'<div class="empty">No sets logged</div>';
+  document.getElementById('metricTopSet').classList.toggle('secondary',chartMetric!=='top');
+  document.getElementById('metricE1RM').classList.toggle('secondary',chartMetric!=='e1rm');
+  syncRpeToggle();
+}
+function showLastHint(exId){
+  const st=exStats(exId);
+  document.getElementById('liftLastHint').textContent=st
+    ?`Last: ${st.last.weight}×${st.last.reps}${st.last.rpe?' @'+st.last.rpe:''} on ${st.last.date} · PR ${st.best.weight}×${st.best.reps}`
+    :'No history for this exercise yet';
+  syncRpeToggle();
+}
+function syncRpeToggle(){
+  const exId=comboLift?comboLift.value:null;
+  const on=!!exId&&(DB.rpeExercises||[]).includes(exId);
+  const btn=document.getElementById('rpeToggle');
+  btn.textContent=on?'On':'Off'; btn.classList.toggle('on',on);
+  document.getElementById('rpeField').hidden=!on;
+}
+function toggleRpe(){
+  const exId=comboLift?comboLift.value:null;
+  if(!exId){ toast('Pick an exercise first'); return; }
+  DB.rpeExercises=DB.rpeExercises||[];
+  const i=DB.rpeExercises.indexOf(exId);
+  if(i>=0) DB.rpeExercises.splice(i,1); else DB.rpeExercises.push(exId);
+  save(); syncRpeToggle(); renderExLibrary();
+}
+function renderExLibrary(){
+  const q=(document.getElementById('exFilter').value||'').toLowerCase();
+  const list=DB.exercises.filter(e=>e.name.toLowerCase().includes(q)||(e.cat||'').toLowerCase().includes(q));
+  document.getElementById('exLibraryList').innerHTML=list.length?list.map(e=>{
+    const st=exStats(e.id);
+    return `<div class="listrow"><div><div class="r-title">${esc(e.name)}</div>
+      <div class="r-sub">${e.cat||'Other'}${(DB.rpeExercises||[]).includes(e.id)?' · <span style="color:var(--blue)">RPE</span>':''}${st?` · ${st.count} sets · last ${st.last.date}`:' · no sets yet'}</div></div>
+      <div class="r-val">${st?`${st.best.weight}×${st.best.reps}<br><span class="r-sub num">e1RM ${Math.round(st.bestE1RM)}</span>`:'—'}
+      <button class="del" onclick="delExercise('${e.id}')">×</button></div></div>`;
+  }).join(''):'<div class="empty">No exercises yet</div>';
+}
+function addExercise(){
+  const name=document.getElementById('newExName').value.trim();
+  if(!name){ toast('Name required'); return; }
+  if(DB.exercises.some(e=>e.name.toLowerCase()===name.toLowerCase())){ toast('Already in library'); return; }
+  DB.exercises.push({id:uid(),name,cat:document.getElementById('newExCat').value});
+  autoMatchSbd(); save();
+  document.getElementById('newExName').value='';
+  renderLifts(); toast('Exercise added');
+}
+function delExercise(id){
+  const n=DB.sets.filter(s=>s.exId===id).length;
+  if(n&&!confirm(`Delete this exercise and its ${n} logged sets?`)) return;
+  DB.exercises=DB.exercises.filter(e=>e.id!==id);
+  DB.sets=DB.sets.filter(s=>s.exId!==id);
+  ['squat','bench','deadlift'].forEach(k=>{ if(DB.sbd[k]===id) DB.sbd[k]=null; });
+  save(); renderLifts();
+}
+function logSet(){
+  const exId=comboLift.value;
+  if(!exId){ toast('Pick an exercise from the list'); return; }
+  const weight=+document.getElementById('liftWeight').value, reps=+document.getElementById('liftReps').value;
+  if(!weight||!reps){ toast('Enter weight and reps'); return; }
+  const st=exStats(exId);
+  const rpeOn=(DB.rpeExercises||[]).includes(exId);
+  const rpeRaw=+document.getElementById('liftRpe').value;
+  const rpe=rpeOn&&rpeRaw>=5&&rpeRaw<=10?rpeRaw:null;
+  DB.sets.push({id:uid(),date:todayStr(),exId,weight,reps,rpe}); save();
+  document.getElementById('liftRpe').value='';
+  const pr=st&&weight>st.best.weight;
+  renderLifts(); showLastHint(exId);
+  toast(pr?'Set logged — new PR':'Set logged');
+}
+function delSet(id){ DB.sets=DB.sets.filter(s=>s.id!==id); save(); renderLifts(); }
+function setChartMetric(m){ chartMetric=m; renderLifts(); }
+function renderLiftChart(){
+  const exId=comboChart?comboChart.value:null;
+  const wrap=document.getElementById('liftChartWrap');
+  if(!exId){ wrap.innerHTML='<div class="empty">Pick an exercise to see progress</div>'; return; }
+  const rows=DB.sets.filter(s=>s.exId===exId);
+  if(rows.length===0){ wrap.innerHTML='<div class="empty">No sets for this exercise</div>'; return; }
+  const byDate={};
+  rows.forEach(s=>{ const v=chartMetric==='top'?s.weight:e1rm(s.weight,s.reps); byDate[s.date]=Math.max(byDate[s.date]||0,v); });
+  const dates=Object.keys(byDate).sort(), vals=dates.map(d=>Math.round(byDate[d]*10)/10);
+  const st=exStats(exId);
+  let html=lineChart(dates,vals)+`<div class="flexrow muted" style="font-size:12px; margin-top:4px;">
+    <span>${chartMetric==='top'?'Heaviest set per day':'Estimated 1RM per day'}</span>
+    <span class="num">PR ${st.best.weight}×${st.best.reps} · e1RM ${Math.round(st.bestE1RM)}</span></div>`;
+  const rpeByDate={};
+  rows.forEach(s=>{ if(s.rpe) rpeByDate[s.date]=Math.max(rpeByDate[s.date]||0,s.rpe); });
+  const rpeVals=dates.map(d=>rpeByDate[d]!==undefined?rpeByDate[d]:null);
+  if(rpeVals.some(v=>v!==null)){
+    const w=rpeVals.filter(v=>v!==null), avg=w.reduce((a,b)=>a+b,0)/w.length;
+    html+=`<hr style="border:none; border-top:1px solid var(--border); margin:12px 0 8px;">`+rpeChart(dates,rpeVals)+
+      `<div class="flexrow muted" style="font-size:12px; margin-top:4px;"><span>Top-set RPE per day</span><span class="num">avg ${avg.toFixed(1)}</span></div>`;
+  }
+  wrap.innerHTML=html;
+}
+function lineChart(labels,vals){
+  const W=320,H=140,padL=34,padR=10,padT=10,padB=22;
+  const min=Math.min(...vals), max=Math.max(...vals);
+  const lo=min===max?min-5:min-(max-min)*0.12, hi=min===max?max+5:max+(max-min)*0.12;
+  const x=i=>padL+(i/Math.max(1,vals.length-1))*(W-padL-padR);
+  const y=v=>H-padB-((v-lo)/(hi-lo))*(H-padT-padB);
+  const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#D9A441';
+  const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  const dots=vals.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="2.6" fill="${accent}"/>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto;">
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="var(--border)"/>
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="var(--border)"/>
+    <text x="2" y="${padT+8}" font-size="9">${Math.round(hi)}</text>
+    <text x="2" y="${H-padB}" font-size="9">${Math.round(lo)}</text>
+    <text x="${padL}" y="${H-4}" font-size="9">${labels[0].slice(5)}</text>
+    <text x="${W-padR-26}" y="${H-4}" font-size="9">${labels[labels.length-1].slice(5)}</text>
+    <polyline points="${pts}" fill="none" stroke="${accent}" stroke-width="2"/>${dots}</svg>`;
+}
+function rpeChart(labels,vals){
+  const W=320,H=100,padL=34,padR=10,padT=8,padB=20, lo=5, hi=10;
+  const x=i=>padL+(i/Math.max(1,vals.length-1))*(W-padL-padR);
+  const y=v=>H-padB-((v-lo)/(hi-lo))*(H-padT-padB);
+  const blue=getComputedStyle(document.documentElement).getPropertyValue('--blue').trim()||'#6FA3DC';
+  const segs=[]; let cur=[];
+  vals.forEach((v,i)=>{ if(v===null){ if(cur.length){segs.push(cur);cur=[];} } else cur.push(`${x(i)},${y(v)}`); });
+  if(cur.length) segs.push(cur);
+  const lines=segs.filter(s=>s.length>1).map(s=>`<polyline points="${s.join(' ')}" fill="none" stroke="${blue}" stroke-width="2"/>`).join('');
+  const dots=vals.map((v,i)=>v===null?'':`<circle cx="${x(i)}" cy="${y(v)}" r="2.6" fill="${blue}"/>`).join('');
+  const grid=[6,8,10].map(g=>`<line x1="${padL}" y1="${y(g)}" x2="${W-padR}" y2="${y(g)}" stroke="var(--border)" stroke-dasharray="2 3"/><text x="2" y="${y(g)+3}" font-size="9">${g}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto;">${grid}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="var(--border)"/>
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="var(--border)"/>
+    <text x="${padL}" y="${H-4}" font-size="9">${labels[0].slice(5)}</text>
+    <text x="${W-padR-26}" y="${H-4}" font-size="9">${labels[labels.length-1].slice(5)}</text>
+    ${lines}${dots}</svg>`;
+}
+
+/* ============ bodyweight ============ */
+function logBodyweight(){
+  const w=+document.getElementById('bwInput').value;
+  if(!w){ toast('Enter a weight'); return; }
+  DB.bodyweight=DB.bodyweight.filter(b=>b.date!==todayStr());
+  DB.bodyweight.push({id:uid(),date:todayStr(),weight:w}); save();
+  document.getElementById('bwInput').value='';
+  renderBodyweight(); toast('Bodyweight logged');
+}
+function delBwEntry(id){ DB.bodyweight=DB.bodyweight.filter(b=>b.id!==id); save(); renderBodyweight(); }
+function renderBodyweight(){
+  const rows=DB.bodyweight.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const wrap=document.getElementById('bwChartWrap'), stat=document.getElementById('bwStat');
+  if(rows.length===0){ wrap.innerHTML=''; stat.textContent='No bodyweight logged yet';
+    document.getElementById('bwList').innerHTML='<div class="empty">No entries</div>'; return; }
+  const latest=rows[rows.length-1], avg=a=>a.reduce((s,r)=>s+r.weight,0)/a.length;
+  const last7=rows.slice(-7), prev7=rows.slice(-14,-7);
+  let trend='';
+  if(prev7.length>=2){ const d=avg(last7)-avg(prev7); trend=` · 7-day avg ${avg(last7).toFixed(1)} (${d>=0?'+':''}${d.toFixed(1)} vs prior week)`; }
+  else if(last7.length>=2) trend=` · 7-day avg ${avg(last7).toFixed(1)}`;
+  stat.textContent=`Latest ${latest.weight} lb on ${latest.date}${trend}`;
+  wrap.innerHTML=rows.length>=2?lineChart(rows.map(r=>r.date),rows.map(r=>r.weight)):'';
+  document.getElementById('bwList').innerHTML=rows.slice().reverse().slice(0,15).map(r=>`
+    <div class="listrow"><span>${r.date}</span><div class="r-val">${r.weight} lb<button class="del" onclick="delBwEntry('${r.id}')">×</button></div></div>`).join('');
+}
+
+/* ============ meds ============ */
+let comboDose, editingMedId=null;
+function onFreqChange(){
+  const v=document.getElementById('medFreq').value;
+  document.getElementById('medDaysWrap').hidden = v!=='days';
+  document.getElementById('medIntervalWrap').hidden = v!=='interval';
+}
+function medDueOnDate(med, dateStr){
+  if(med.active===false) return false;
+  if(med.freq==='daily') return true;
+  if(med.freq==='days'){ const dow=new Date(dateStr+'T12:00:00').getDay(); return (med.days||[]).includes(dow); }
+  if(med.freq==='interval'){
+    const start=new Date((med.start||dateStr)+'T12:00:00'), cur=new Date(dateStr+'T12:00:00');
+    const diff=Math.round((cur-start)/86400000);
+    return diff>=0 && diff % (med.interval||2)===0;
+  }
+  return false;
+}
+function medsDueToday(){
+  const d=todayStr(), out=[];
+  DB.medSchedule.forEach(med=>{
+    if(!medDueOnDate(med,d)) return;
+    (med.times.length?med.times:['—']).forEach(time=>{
+      const log=DB.medLog.find(l=>l.schedId===med.id&&l.date===d&&l.slot===time);
+      out.push({med,time,log});
+    });
+  });
+  return out.sort((a,b)=>a.time.localeCompare(b.time));
+}
+function toggleMed(schedId, slot){
+  const d=todayStr();
+  const i=DB.medLog.findIndex(l=>l.schedId===schedId&&l.date===d&&l.slot===slot);
+  if(i>=0){ DB.medLog.splice(i,1); save(); renderMeds(); toast('Unmarked'); return; }
+  const med=DB.medSchedule.find(m=>m.id===schedId);
+  DB.medLog.push({id:uid(),schedId,date:d,slot,time:nowHM(),name:med.name,dose:med.dose,unit:med.unit,category:med.category});
+  save(); renderMeds(); toast('Taken at '+nowHM());
+}
+function renderMeds(){
+  if(!comboDose) comboDose=new Combo('comboDose',{placeholder:'Substance name',getItems:doseItems,allowFree:true,onChange:id=>{
+    const prev=[...DB.doses,...DB.medLog].reverse().find(d=>d.name===id);
+    if(prev){ document.getElementById('doseUnit').value=prev.unit||''; document.getElementById('doseAmount').value=prev.dose||prev.amount||''; }
+  }});
+  const due=medsDueToday();
+  document.getElementById('medTodayList').innerHTML=due.length?due.map(d=>`
+    <div class="med${d.log?' done':''}" onclick="toggleMed('${d.med.id}','${d.time}')">
+      <div class="box">✓</div>
+      <div class="mid"><div class="mname">${esc(d.med.name)}</div>
+        <div class="msub">${d.med.dose||''}${esc(d.med.unit||'')} · scheduled ${d.time}</div></div>
+      <div class="mtime">${d.log?'✓ '+d.log.time:d.time}</div>
+    </div>`).join(''):'<div class="empty">Nothing scheduled today</div>';
+
+  document.getElementById('medScheduleList').innerHTML=DB.medSchedule.length?DB.medSchedule.map(m=>{
+    const freq = m.freq==='daily'?'Daily'
+      : m.freq==='days'?(m.days||[]).map(d=>['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(' ')
+      : `Every ${m.interval} days`;
+    return `<div class="listrow"><div><div class="r-title">${esc(m.name)} <span class="tag ${m.category.toLowerCase()}">${m.category}</span></div>
+      <div class="r-sub">${m.dose||''}${esc(m.unit||'')} · ${freq} · ${m.times.join(', ')||'no time'}${m.active===false?' · paused':''}</div></div>
+      <div class="r-val">
+        <button class="del" style="color:var(--muted)" onclick="toggleMedActive('${m.id}')">${m.active===false?'resume':'pause'}</button>
+        <button class="del" style="color:var(--accent)" onclick="editMed('${m.id}')">edit</button>
+        <button class="del" onclick="delMed('${m.id}')">×</button></div></div>`;
+  }).join(''):'<div class="empty">No scheduled substances</div>';
+
+  const combined=[
+    ...DB.medLog.map(l=>({id:l.id,src:'log',date:l.date+' '+l.time,name:l.name,amount:l.dose,unit:l.unit,category:l.category})),
+    ...DB.doses.map(d=>({id:d.id,src:'dose',date:d.date,name:d.name,amount:d.amount,unit:d.unit,category:d.category}))
+  ].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
+  document.getElementById('doseHistoryList').innerHTML=combined.length?combined.map(d=>`
+    <div class="listrow"><div><div class="r-title">${esc(d.name)} <span class="tag ${(d.category||'medication').toLowerCase()}">${d.category||'—'}</span></div>
+      <div class="r-sub">${d.date}${d.src==='dose'?' · unscheduled':''}</div></div>
+    <div class="r-val">${d.amount||''}${esc(d.unit||'')}<button class="del" onclick="delHistory('${d.src}','${d.id}')">×</button></div></div>`).join('')
+    :'<div class="empty">No doses logged</div>';
+}
+function doseItems(){
+  const seen={};
+  [...DB.medSchedule.map(m=>({name:m.name,category:m.category,unit:m.unit,amount:m.dose})),
+   ...DB.doses].forEach(d=>{ if(!seen[d.name]) seen[d.name]={id:d.name,label:d.name,sub:`${d.category} · ${d.amount||''}${d.unit||''}`}; });
+  return Object.values(seen);
+}
+function saveMed(){
+  const name=document.getElementById('medName').value.trim();
+  if(!name){ toast('Name required'); return; }
+  const times=document.getElementById('medTimes').value.split(',').map(s=>s.trim()).filter(s=>/^\d{1,2}:\d{2}$/.test(s))
+    .map(s=>s.padStart(5,'0'));
+  if(times.length===0){ toast('Enter at least one time as HH:MM'); return; }
+  const freq=document.getElementById('medFreq').value;
+  const med={
+    id: editingMedId||uid(),
+    category: document.querySelector('#medCatChips .chip.on').dataset.v,
+    name,
+    dose:+document.getElementById('medDose').value||null,
+    unit:document.getElementById('medUnit').value.trim(),
+    times, freq,
+    days:[...document.querySelectorAll('#medDayChips .chip.on')].map(c=>+c.dataset.d),
+    interval:+document.getElementById('medInterval').value||3,
+    start: todayStr(),
+    active:true
+  };
+  if(freq==='days'&&med.days.length===0){ toast('Pick at least one day'); return; }
+  if(editingMedId){
+    const i=DB.medSchedule.findIndex(m=>m.id===editingMedId);
+    med.start = DB.medSchedule[i].start || todayStr();
+    med.active = DB.medSchedule[i].active !== false;
+    DB.medSchedule[i]=med;
+  } else DB.medSchedule.push(med);
+  save(); cancelMedEdit(); renderMeds(); toast(editingMedId?'Schedule updated':'Added to schedule');
+}
+function editMed(id){
+  const m=DB.medSchedule.find(x=>x.id===id); if(!m) return;
+  editingMedId=id;
+  document.querySelectorAll('#medCatChips .chip').forEach(c=>c.classList.toggle('on',c.dataset.v===m.category));
+  document.getElementById('medName').value=m.name;
+  document.getElementById('medDose').value=m.dose||'';
+  document.getElementById('medUnit').value=m.unit||'';
+  document.getElementById('medTimes').value=m.times.join(', ');
+  document.getElementById('medFreq').value=m.freq;
+  document.getElementById('medInterval').value=m.interval||3;
+  document.querySelectorAll('#medDayChips .chip').forEach(c=>c.classList.toggle('on',(m.days||[]).includes(+c.dataset.d)));
+  onFreqChange();
+  document.getElementById('medCancelEdit').hidden=false;
+  document.getElementById('medName').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function cancelMedEdit(){
+  editingMedId=null;
+  document.getElementById('medName').value='';
+  document.getElementById('medDose').value='';
+  document.getElementById('medUnit').value='';
+  document.getElementById('medTimes').value='';
+  document.getElementById('medCancelEdit').hidden=true;
+}
+function toggleMedActive(id){
+  const m=DB.medSchedule.find(x=>x.id===id);
+  m.active = m.active===false;
+  save(); renderMeds();
+}
+function delMed(id){
+  if(!confirm('Remove from schedule? Past dose history is kept.')) return;
+  DB.medSchedule=DB.medSchedule.filter(m=>m.id!==id); save(); renderMeds();
+}
+function delHistory(src,id){
+  if(src==='log') DB.medLog=DB.medLog.filter(l=>l.id!==id);
+  else DB.doses=DB.doses.filter(d=>d.id!==id);
+  save(); renderMeds();
+}
+function logDose(){
+  const name=comboDose.text;
+  const amount=+document.getElementById('doseAmount').value, unit=document.getElementById('doseUnit').value.trim();
+  if(!name||!amount){ toast('Substance and amount required'); return; }
+  const known=DB.medSchedule.find(m=>m.name===name);
+  DB.doses.push({id:uid(),date:todayStr()+' '+nowHM(),category:known?known.category:'Medication',name,amount,unit});
+  save(); comboDose.clear(); document.getElementById('doseAmount').value='';
+  renderMeds(); toast('Dose logged');
+}
+
+/* ============ sleep ============ */
+function renderSleep(){
+  const hist=DB.sleep.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('sleepHistoryList').innerHTML=hist.length?hist.slice(0,20).map(s=>`
+    <div class="listrow"><div><div class="r-title">${s.date}</div><div class="r-sub">${s.bed}–${s.wake} · quality ${s.quality}/5</div></div>
+    <div class="r-val">${s.hours.toFixed(1)}h<button class="del" onclick="delSleep('${s.id}')">×</button></div></div>`).join('')
+    :'<div class="empty">No sleep logged</div>';
+  const last14=hist.slice(0,14).reverse();
+  document.getElementById('sleepChartWrap').innerHTML=last14.length?barChart(last14.map(s=>s.hours)):'<div class="empty">No data yet</div>';
+}
+function barChart(vals){
+  const W=320,H=140,padL=24,padR=10,padT=10,padB=20;
+  const max=Math.max(8,...vals), bw=(W-padL-padR)/vals.length;
+  const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#D9A441';
+  const bars=vals.map((v,i)=>{ const h=(v/max)*(H-padT-padB);
+    return `<rect x="${padL+i*bw+2}" y="${H-padB-h}" width="${bw-4}" height="${h}" rx="2" fill="${accent}"/>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto;">
+    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="var(--border)"/>
+    <text x="2" y="${H-padB+5}" font-size="9">0</text><text x="2" y="${padT+8}" font-size="9">${max}h</text>${bars}</svg>`;
+}
+function logSleep(){
+  const bed=document.getElementById('sleepBed').value, wake=document.getElementById('sleepWake').value;
+  if(!bed||!wake){ toast('Enter both times'); return; }
+  const [bh,bm]=bed.split(':').map(Number), [wh,wm]=wake.split(':').map(Number);
+  let bedMin=bh*60+bm, wakeMin=wh*60+wm;
+  if(wakeMin<=bedMin) wakeMin+=1440;
+  const hours=(wakeMin-bedMin)/60;
+  DB.sleep=DB.sleep.filter(s=>s.date!==todayStr());
+  DB.sleep.push({id:uid(),date:todayStr(),bed,wake,hours,quality:+document.getElementById('sleepQuality').value||3});
+  save(); renderSleep(); toast('Sleep logged: '+hours.toFixed(1)+'h');
+}
+function delSleep(id){ DB.sleep=DB.sleep.filter(s=>s.id!==id); save(); renderSleep(); }
+
+/* ============ settings ============ */
+let comboSquat, comboBench, comboDead;
+function renderSettings(){
+  if(!comboSquat){
+    comboSquat=new Combo('comboSquat',{placeholder:'Pick squat variation',getItems:exItems});
+    comboBench=new Combo('comboBench',{placeholder:'Pick bench variation',getItems:exItems});
+    comboDead=new Combo('comboDead',{placeholder:'Pick deadlift variation',getItems:exItems});
+  }
+  comboSquat.setSelection(DB.sbd.squat); comboBench.setSelection(DB.sbd.bench); comboDead.setSelection(DB.sbd.deadlift);
+
+  if(!document.getElementById('bwDate').value) document.getElementById('bwDate').value=todayStr();
+  const bw=DB.bloodwork.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('bwHistoryList').innerHTML=bw.length?bw.map(p=>`
+    <div class="listrow"><div><div class="r-title">${p.date}</div><div class="r-sub">${esc(p.markers).replace(/\n/g,' · ')}${p.notes?' — '+esc(p.notes):''}</div></div>
+    <button class="del" onclick="delBw('${p.id}')">×</button></div>`).join(''):'<div class="empty">No panels logged</div>';
+
+  document.getElementById('tCarb').value=DB.targets.carb||'';
+  document.getElementById('tProt').value=DB.targets.prot||'';
+  document.getElementById('tFat').value=DB.targets.fat||'';
+  document.getElementById('mealTimes').value=(DB.reminders.mealTimes||[]).join(', ');
+  document.getElementById('sleepReminderTime').value=DB.reminders.sleepTime||'';
+  document.getElementById('bwDay').value=DB.reminders.bwDay||'';
+  const latest=DB.bodyweight.slice().sort((a,b)=>a.date.localeCompare(b.date)).pop();
+  if(latest&&!document.getElementById('calcBw').value) document.getElementById('calcBw').value=latest.weight;
+}
+function saveSbd(){
+  DB.sbd={squat:comboSquat.value||DB.sbd.squat, bench:comboBench.value||DB.sbd.bench, deadlift:comboDead.value||DB.sbd.deadlift};
+  save(); toast('Lifts saved');
+}
+function logBloodwork(){
+  const date=document.getElementById('bwDate').value||todayStr();
+  const markers=document.getElementById('bwMarkers').value.trim();
+  if(!markers){ toast('Enter at least one marker'); return; }
+  DB.bloodwork.push({id:uid(),date,markers,notes:document.getElementById('bwNotes').value.trim()});
+  save(); document.getElementById('bwMarkers').value=''; document.getElementById('bwNotes').value='';
+  renderSettings(); toast('Panel saved');
+}
+function delBw(id){ DB.bloodwork=DB.bloodwork.filter(b=>b.id!==id); save(); renderSettings(); }
+function saveTargets(){
+  DB.targets={carb:+document.getElementById('tCarb').value||0,prot:+document.getElementById('tProt').value||0,fat:+document.getElementById('tFat').value||0};
+  save(); toast('Targets saved');
+}
+function autoTargets(){
+  const bw=+document.getElementById('calcBw').value; if(!bw){ toast('Enter bodyweight'); return; }
+  const goal=document.getElementById('goalSelect').value;
+  const prot=Math.round(bw*1.0), fat=Math.round(bw*0.35);
+  const cal=goal==='cut'?bw*12:goal==='bulk'?bw*17:bw*15;
+  document.getElementById('tCarb').value=Math.max(0,Math.round((cal-prot*4-fat*9)/4));
+  document.getElementById('tProt').value=prot; document.getElementById('tFat').value=fat;
+  toast('Calculated — review and save');
+}
+function saveReminders(){
+  DB.reminders={
+    mealTimes:document.getElementById('mealTimes').value.split(',').map(s=>s.trim()).filter(Boolean),
+    sleepTime:document.getElementById('sleepReminderTime').value,
+    bwDay:+document.getElementById('bwDay').value||null
+  };
+  save(); toast('Reminders saved');
+}
+function askNotifPermission(){
+  if(!('Notification' in window)){ toast('Notifications not supported here'); return; }
+  Notification.requestPermission().then(p=>{ DB.notifPermission=p==='granted'; save(); toast(p==='granted'?'Notifications enabled':'Permission not granted'); });
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='bloobledoop-backup-'+todayStr()+'.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(){
+  const file=document.getElementById('importFile').files[0];
+  if(!file){ toast('Choose a file'); return; }
+  const r=new FileReader();
+  r.onload=e=>{ try{ DB=JSON.parse(e.target.result); const d=defaultStore(); for(const k in d){ if(DB[k]===undefined) DB[k]=d[k]; } save(); toast('Imported'); showView('dash'); }catch(err){ toast('Invalid file'); } };
+  r.readAsText(file);
+}
+function resetAll(){
+  if(!confirm('Erase all local data? This cannot be undone.')) return;
+  DB=defaultStore(); save(); toast('Erased'); showView('dash');
+}
+
+/* ============ reminders ============ */
+let lastFired={};
+function checkReminders(){
+  const now=new Date(), hhmm=nowHM(), key=todayStr()+'_'+hhmm, r=DB.reminders;
+  const fire=(msg,tag)=>{
+    if(lastFired[tag]===key) return; lastFired[tag]=key;
+    toast(msg);
+    if(DB.notifPermission&&'Notification' in window) new Notification('Bloobledoop',{body:msg});
+  };
+  (r.mealTimes||[]).forEach(t=>{ if(t===hhmm) fire('Time to eat','meal_'+t); });
+  if(r.sleepTime===hhmm) fire('Wind-down — get to bed soon','sleep');
+  if(r.bwDay&&now.getDate()===r.bwDay&&hhmm==='09:00') fire('Bloodwork due this month','bw');
+  medsDueToday().forEach(d=>{ if(d.time===hhmm&&!d.log) fire(`${d.med.name} — ${d.med.dose||''}${d.med.unit||''}`,'med_'+d.med.id+'_'+d.time); });
+}
+setInterval(checkReminders,20000);
+
+load();
+renderDash();
+</script>
+</body>
+</html>
