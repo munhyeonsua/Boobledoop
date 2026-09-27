@@ -579,7 +579,8 @@
 <div id="formStash">
   <div class="qform" id="fLift">
     <div class="combo" id="comboLift"></div>
-    <div id="logLiftHint" style="margin:-2px 0 10px;"></div>
+    <div id="logSheetChart" style="margin-top:10px;"></div>
+    <div id="logLiftHint" style="margin:6px 0 10px;"></div>
     <div class="row">
       <div><label>Weight (<span class="u">lb</span>)</label><input type="number" id="liftWeight" step="any" inputmode="decimal"></div>
       <div><label>Reps</label><input type="number" id="liftReps" step="1" inputmode="numeric"></div>
@@ -1854,7 +1855,7 @@ function openForm(k){
     <h3>${q.t}${isToday()?'':' · '+dayLabel()}</h3><button class="sh-done" onclick="closeModal()">Done</button></div>`);
   document.getElementById('sheet').appendChild(node);
   renderHeader();
-  if(k==='lift'){ syncRpeToggle(); renderLogHint(); }
+  if(k==='lift'){ syncRpeToggle(); renderLogHint(); renderSheetLiftChart(); }
   if(k==='sleep') prepSleepForm();
   const first={bw:'bwInput',bp:'bpSys'}[k]; if(first) document.getElementById(first).focus();
 }
@@ -2246,12 +2247,9 @@ function prefillNext(exId){
   document.getElementById('liftWeight').value=W(t.weight);
   document.getElementById('liftReps').value=t.reps;
 }
-function onLiftPicked(exId){ prefillNext(exId); syncRpeToggle(); renderLogHint(); }
-function renderLogLiftChart(){
-  const exId=comboLook?comboLook.value:null;
-  const panel=document.getElementById('logLiftPanel'), wrap=document.getElementById('logLiftChart');
-  if(!exId){ panel.hidden=true; return; }
-  panel.hidden=false;
+function onLiftPicked(exId){ prefillNext(exId); syncRpeToggle(); renderLogHint(); renderSheetLiftChart(); }
+/* graph + High/Avg/Low + range for one lift — used on the Lifts tab and in the Log a set popup */
+function liftChartHtml(exId){
   let html='';
   const all=dailyLift(exId,chartMetric);
   if(all.length){
@@ -2270,6 +2268,20 @@ function renderLogLiftChart(){
       html+=svgChart([{points:all.filter(p=>p.date>=rangeCutoff(st.range)),color:cssVar('--accent','#D9A441'),type:'line'}],{H:130,refs:(st.refs?refLines(all):[]).concat(goalRef(DB.goals.lifts[exId])),unit:unit()});
     }
   }
+  return html;
+}
+function renderSheetLiftChart(){
+  const el=document.getElementById('logSheetChart'); if(!el) return;
+  const exId=comboLift?comboLift.value:null;
+  el.innerHTML=exId?liftChartHtml(exId):'';
+}
+function renderLogLiftChart(){
+  renderSheetLiftChart();
+  const exId=comboLook?comboLook.value:null;
+  const panel=document.getElementById('logLiftPanel'), wrap=document.getElementById('logLiftChart');
+  if(!exId){ panel.hidden=true; return; }
+  panel.hidden=false;
+  let html=liftChartHtml(exId);
   const today=setsOn(exId,curDay()), prev=lastSession(exId,curDay());
   html+=`<div class="sub-l">${isToday()?'Today':dayLabel()}</div><div class="sets">${today.length
       ?today.map((x,i)=>setChip(x,false,cmpSet(x,prev&&prev.sets[i]))).join('')
@@ -2354,7 +2366,7 @@ function logSet(){
   DB.sets.push({id:uid(),date:curDay(),time:nowHM(),exId,weight,reps,rpe:rpeOn&&rpeRaw>=5&&rpeRaw<=10?rpeRaw:null});
   save(); document.getElementById('liftRpe').value='';
   const pr=st&&weight>st.best.weight;
-  prefillNext(exId); renderLogHint(); renderCurrent();
+  prefillNext(exId); renderLogHint(); renderSheetLiftChart(); renderCurrent();
   toast(pr?'Set logged — new PR':(isToday()?'Set logged':'Set logged to '+dayLabel()));
   if(pr&&isPro()) confetti(40);
 }
