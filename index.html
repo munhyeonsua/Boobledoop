@@ -657,6 +657,7 @@ class Combo{
     this.root=typeof root==='string'?document.getElementById(root):root;
     this.getItems=opts.getItems; this.onChange=opts.onChange||(()=>{});
     this.allowFree=!!opts.allowFree; this.selectedId=null; this.hl=-1;
+    this.createLabel=opts.createLabel||'Add new:'; this.onCreate=opts.onCreate||(()=>{});
     this.root.innerHTML=`<input type="text" placeholder="${opts.placeholder||'Search'}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"><div class="combo-list" hidden></div>`;
     this.input=this.root.querySelector('input'); this.list=this.root.querySelector('.combo-list');
     this.input.addEventListener('focus',()=>{ this.input.select(); this.open(); });
@@ -675,16 +676,23 @@ class Combo{
     return items.filter(it=>{ const hay=(it.label+' '+(it.sub||'')).toLowerCase(); return toks.every(t=>hay.includes(t)); }).slice(0,60);
   }
   open(){
-    const items=this.filtered(); this.cur=items;
+    const items=this.filtered(), t=this.input.value.trim();
+    if(this.allowFree&&t&&!(this.getItems()||[]).some(x=>x.label.toLowerCase()===t.toLowerCase()))
+      items.push({id:null,create:true,text:t,label:`+ ${this.createLabel} "${t}"`});
+    this.cur=items;
     if(items.length===0) this.list.innerHTML=`<div class="combo-none">${this.allowFree?'No match — will be saved as new':'No matches'}</div>`;
     else{
-      this.list.innerHTML=items.map((it,i)=>`<div class="combo-item${i===this.hl?' hl':''}" data-i="${i}">${esc(it.label)}${it.sub?`<span class="ci-sub">${esc(it.sub)}</span>`:''}</div>`).join('');
+      this.list.innerHTML=items.map((it,i)=>`<div class="combo-item${i===this.hl?' hl':''}" data-i="${i}"${it.create?' style="color:var(--accent); font-weight:600;"':''}>${esc(it.label)}${it.sub?`<span class="ci-sub">${esc(it.sub)}</span>`:''}</div>`).join('');
       this.list.querySelectorAll('.combo-item').forEach(el=>el.addEventListener('mousedown',e=>{ e.preventDefault(); this.pick(+el.dataset.i); }));
     }
     this.list.hidden=false;
   }
   close(){ this.list.hidden=true; this.hl=-1; }
-  pick(i){ const it=this.cur[i]; if(!it) return; this.selectedId=it.id; this.input.value=it.label; this.close(); this.onChange(it.id,it); }
+  pick(i){
+    const it=this.cur[i]; if(!it) return;
+    if(it.create){ this.selectedId=null; this.input.value=it.text; this.close(); this.onCreate(it.text); return; }
+    this.selectedId=it.id; this.input.value=it.label; this.close(); this.onChange(it.id,it);
+  }
   key(e){
     if(this.list.hidden) return;
     if(e.key==='ArrowDown'){ e.preventDefault(); this.hl=Math.min((this.cur||[]).length-1,this.hl+1); this.open(); }
@@ -1311,14 +1319,20 @@ function renderPlanEditor(){
     <button class="btn block" onclick="savePlan()">Save plan</button>
     ${p.id?`<button class="btn danger block" style="margin-top:8px;" onclick="delPlan('${p.id}')">Delete plan</button>`:''}
     <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`);
-  planCombo=new Combo('peCombo',{placeholder:'Add exercise — type to search or add new',getItems:exItems,allowFree:true});
+  planCombo=new Combo('peCombo',{placeholder:'Add exercise — search or type a new one',getItems:exItems,allowFree:true,createLabel:'Create lift',
+    onCreate:()=>document.getElementById('peSets').focus()});
 }
-function addPlanItem(){
-  let exId=planCombo.value; const t=planCombo.text;
+function resolveExercise(combo){
+  let exId=combo.value; const t=combo.text;
   if(!exId&&t){
     const ex=DB.exercises.find(e=>e.name.toLowerCase()===t.toLowerCase());
-    if(ex) exId=ex.id; else { exId=uid(); DB.exercises.push({id:exId,name:t,cat:'Other'}); autoMatchSbd(); save(); }
+    if(ex) exId=ex.id;
+    else { exId=uid(); DB.exercises.push({id:exId,name:t,cat:'Other'}); autoMatchSbd(); save(); toast(`Created "${t}"`); }
   }
+  return exId;
+}
+function addPlanItem(){
+  const exId=resolveExercise(planCombo);
   if(!exId){ toast('Pick or type an exercise'); return; }
   planEdit.addSets=Math.max(1,+document.getElementById('peSets').value||3);
   planEdit.addReps=Math.max(1,+document.getElementById('peReps').value||5);
@@ -1359,6 +1373,32 @@ function startSession(planId){
     phase:'idle',workStart:0,restEnd:0,pending:false,alerted:false,hidden:false,
     items:p.items.map(i=>({exId:i.exId,sets:i.sets,reps:i.reps,done:[],skipped:false}))};
   save(); closeModal(); unlockAudio(); renderSession();
+}
+let sxCombo=null;
+function openSxAdd(){
+  const S=DB.session, plan=DB.plans.find(p=>p.id===S.planId);
+  openModal(`<h3>Add exercise</h3>
+    <div class="combo" id="sxCombo"></div>
+    <div class="row">
+      <div><label>Sets</label><input type="number" id="sxAddSets" inputmode="numeric" value="3"></div>
+      <div><label>Reps</label><input type="number" id="sxAddReps" inputmode="numeric" value="8"></div>
+    </div>
+    ${plan?`<label class="refbox" style="margin-bottom:12px; font-size:13px;"><input type="checkbox" id="sxAddPlan"> Also add to the ${esc(plan.name)} plan</label>`:''}
+    <button class="btn block" onclick="sxAddEx()">Add to session</button>
+    <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`);
+  sxCombo=new Combo('sxCombo',{placeholder:'Search or type a new lift',getItems:exItems,allowFree:true,createLabel:'Create lift',
+    onCreate:()=>document.getElementById('sxAddSets').focus()});
+}
+function sxAddEx(){
+  const exId=resolveExercise(sxCombo);
+  if(!exId){ toast('Pick or type an exercise'); return; }
+  const S=DB.session, sets=Math.max(1,+document.getElementById('sxAddSets').value||3), reps=Math.max(1,+document.getElementById('sxAddReps').value||8);
+  const cur=S.items[S.cur], curFinished=!cur||cur.skipped||cur.done.length>=cur.sets;
+  S.items.push({exId,sets,reps,done:[],skipped:false});
+  if(curFinished&&!S.pending) S.cur=S.items.length-1;
+  const cb=document.getElementById('sxAddPlan');
+  if(cb&&cb.checked){ const plan=DB.plans.find(p=>p.id===S.planId); if(plan) plan.items.push({exId,sets,reps}); }
+  save(); closeModal(); renderSession(); toast(`${exName(exId)} added`);
 }
 function sxItem(){ return DB.session.items[DB.session.cur]; }
 function sxDoneSets(it){ return it.done.map(id=>DB.sets.find(s=>s.id===id)).filter(Boolean); }
@@ -1410,7 +1450,8 @@ function renderSession(){
   }
   h+=`<div class="sx-sec">Exercises</div><div class="card">${S.items.map((it,i)=>`
     <div class="listrow sx-row${i===S.cur&&!sxAllDone()?' cur':''}${it.skipped?' skipped':''}" onclick="jumpEx(${i})">
-      <span>${esc(exName(it.exId))}</span><span class="r-val">${it.skipped?'skipped':it.done.length+' / '+it.sets}</span></div>`).join('')}</div></div>`;
+      <span>${esc(exName(it.exId))}</span><span class="r-val">${it.skipped?'skipped':it.done.length+' / '+it.sets}</span></div>`).join('')}
+    <button class="btn secondary block" style="margin-top:8px;" onclick="openSxAdd()">+ Add exercise</button></div></div>`;
   ov.innerHTML=h;
   tickSession();
 }
