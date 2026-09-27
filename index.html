@@ -29,10 +29,10 @@
     --text:#E7E5DE; --muted:#8B8E94; --accent:#D9A441; --accent2:#C1554A; --good:#7FA65A; --blue:#6FA3DC;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{height:100%; touch-action:manipulation; -webkit-text-size-adjust:100%;}
+  html,body{height:100%; overflow:hidden; overscroll-behavior:none; touch-action:manipulation; -webkit-text-size-adjust:100%;}
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
   body{margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased;}
-  .app{display:flex; flex-direction:column; height:100%; max-width:560px; margin:0 auto;}
+  .app{display:flex; flex-direction:column; position:fixed; top:0; bottom:0; left:0; right:0; max-width:560px; margin:0 auto;}
   header{
     padding:8px 14px; padding-top:calc(8px + env(safe-area-inset-top,0px));
     border-bottom:1px solid var(--border); flex:0 0 auto;
@@ -46,17 +46,25 @@
   .datepick input{position:absolute; inset:0; width:100%; height:100%; opacity:0; margin:0; padding:0; border:none; font-size:16px;}
   .hdr-btn{background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:16px; padding:5px 10px; font-family:var(--mono); font-size:12.5px;}
   .hdr-btn[hidden]{display:none;}
-  main{flex:1; overflow-y:auto; padding:10px 14px 14px; -webkit-overflow-scrolling:touch;}
+  main{flex:1; overflow-y:auto; overscroll-behavior-y:contain; padding:10px 14px 12px; -webkit-overflow-scrolling:touch;}
+  body.modal-open main{overflow:hidden;}
   nav.tabs{
-    flex:0 0 auto; display:flex; background:var(--panel); border-top:1px solid var(--border);
-    padding-bottom:env(safe-area-inset-bottom,0px); z-index:30;
+    flex:0 0 auto; display:flex; align-items:flex-end; background:var(--panel); border-top:1px solid var(--border);
+    padding-bottom:max(4px, calc(env(safe-area-inset-bottom,0px) - 16px)); z-index:30;
+    touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
   }
   nav.tabs button{
-    flex:1; background:none; border:none; color:var(--muted); font-family:var(--sans);
-    font-size:10.5px; padding:9px 2px 8px; display:flex; flex-direction:column; align-items:center; gap:3px;
+    flex:1; min-width:0; background:none; border:none; color:var(--muted); font-family:var(--sans);
+    font-size:10.5px; padding:8px 0 5px; display:flex; flex-direction:column; align-items:center; gap:3px;
+    -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
   }
-  nav.tabs button .ic{font-size:17px;}
+  nav.tabs .ic{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
   nav.tabs button.active{color:var(--accent);}
+  nav.tabs button.plus{padding-top:0;}
+  nav.tabs button.plus span{width:48px; height:48px; border-radius:50%; background:var(--accent); color:var(--on-accent,#191A16);
+    display:grid; place-items:center; margin:-16px 0 2px; box-shadow:0 4px 14px rgba(0,0,0,.28); border:3px solid var(--panel);}
+  nav.tabs button.plus .ic{width:24px; height:24px; stroke-width:2.4;}
+  nav.tabs button.plus:active span{transform:scale(.94);}
   section.view{display:none;}
   section.view.active{display:block;}
   h2.section-title{font-size:13px; color:var(--muted); margin:14px 0 6px; font-weight:600; display:flex; justify-content:space-between; align-items:center; cursor:pointer; -webkit-user-select:none; user-select:none;}
@@ -64,7 +72,7 @@
   h2.section-title.collapsed::after{transform:rotate(-90deg);}
   .card[hidden]{display:none;}
   h2.section-title:first-child{margin-top:0;}
-  .card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px;}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px; font-size:14px;}
   .row{display:flex; gap:10px;}
   .row > *{flex:1; min-width:0;}
   label{display:block; font-size:11.5px; color:var(--muted); margin-bottom:4px;}
@@ -81,7 +89,7 @@
   button.chip.on{background:var(--accent); color:var(--on-accent,#191A16); border-color:var(--accent);}
   button.chip.sm{padding:4px 10px; font-size:11.5px; margin:0 5px 0 0;}
   .num{font-family:var(--mono);}
-  .big{font-size:26px; font-weight:600; font-family:var(--mono);}
+  .big{font-size:24px; font-weight:600; font-family:var(--mono); line-height:1.1;}
   .muted{color:var(--muted);}
   .flexrow{display:flex; justify-content:space-between; align-items:center;}
   .bar{height:7px; border-radius:4px; background:var(--panel-2); overflow:hidden; margin:6px 0 2px;}
@@ -153,7 +161,7 @@
   .modal{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:70; display:flex; align-items:flex-end;}
   .modal[hidden]{display:none;}
   .sheet{background:var(--panel); width:100%; max-width:560px; margin:0 auto; border-radius:14px 14px 0 0;
-    padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px)); max-height:86%; overflow-y:auto;}
+    padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px)); max-height:88%; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;}
   .sheet h3{margin:0 0 12px; font-size:15px;}
 
   .chart{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none; touch-action:pan-y;}
@@ -213,6 +221,24 @@
   .plan-pick b{font-size:15px;}
   .plan-pick span{display:block; font-size:11.5px; color:var(--muted); margin-top:3px;}
   .ell{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  /* supporter */
+  .pro-badge{color:var(--accent); margin-left:3px; font-size:13px;}
+  .sw.locked{position:relative; opacity:.45;}
+  .sw.locked::after{content:'🔒'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px;}
+  .pro-msg{font-size:14px; line-height:1.55; margin:0 0 12px;}
+  .pro-buy{display:flex; gap:8px; margin-bottom:12px;}
+  .pro-buy a{flex:1; text-align:center; text-decoration:none; display:block; background:var(--accent); color:var(--on-accent,#191A16);
+    border-radius:9px; padding:11px 8px; font-weight:600; font-size:15px; font-family:var(--sans);}
+  .pro-buy a.secondary{background:var(--panel-2); color:var(--text); border:1px solid var(--border);}
+  .pro-buy a small{display:block; font-weight:400; font-size:11.5px; opacity:.8; margin-top:2px;}
+  .confetti{position:fixed; top:-12px; width:8px; height:12px; border-radius:2px; z-index:90; pointer-events:none; animation:fall linear forwards;}
+  @keyframes fall{ to{ transform:translate3d(var(--dx),110vh,0) rotate(var(--rot)); } }
+  .bloob{position:fixed; bottom:calc(76px + env(safe-area-inset-bottom,0px)); left:-90px; z-index:85; pointer-events:none; animation:bloobWalk 5.5s linear forwards;}
+  .bloob svg{display:block; animation:bloobHop .45s ease-in-out infinite alternate;}
+  .bloob .say{position:absolute; bottom:78px; left:30px; background:var(--panel); color:var(--text); border:1px solid var(--border);
+    border-radius:12px; padding:7px 10px; font-size:12.5px; white-space:nowrap; box-shadow:0 4px 14px rgba(0,0,0,.25);}
+  @keyframes bloobWalk{ to{ left:calc(100vw + 20px); } }
+  @keyframes bloobHop{ from{ transform:translateY(0) scaleY(1); } to{ transform:translateY(-10px) scaleY(1.05); } }
   /* bloodwork */
   #labPaste{font-family:var(--mono); font-size:16px; line-height:1.45;}
   .labs{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px;}
@@ -232,6 +258,37 @@
   .lp-new{font-size:9.5px; font-weight:700; color:var(--accent); border:1px solid var(--accent); border-radius:4px; padding:0 4px; margin-left:4px;}
   .lp-bad{font-size:12px; color:var(--accent2); padding:6px 0; border-bottom:1px solid var(--border);}
   .num.bad,.bad{color:var(--accent2);}
+  /* quick-add sheet */
+  .qa{display:flex; align-items:center; gap:12px; width:100%; padding:11px 12px; margin-bottom:8px; background:var(--panel-2);
+    border:1px solid var(--border); border-radius:11px; color:var(--text); font-family:var(--sans); text-align:left;}
+  .qa b{display:block; font-size:15px; font-weight:600;}
+  .qa small{display:block; font-size:12px; color:var(--muted); margin-top:1px;}
+  .qa small.due{color:var(--accent);}
+  .qi{flex:0 0 36px; width:36px; height:36px; border-radius:10px; background:var(--bg); display:grid; place-items:center; color:var(--accent);}
+  .qi svg{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;}
+  .qa-done{font-size:12px; color:var(--muted); margin-top:4px;}
+  .qa-done .chip{margin-top:6px;}
+  .sh-head{display:flex; align-items:center; gap:8px; margin:-4px 0 12px;}
+  .sh-head h3{flex:1; margin:0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .sh-back{background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:8px; width:34px; height:32px; font-size:20px; line-height:1; padding:0;}
+  .sh-done{background:none; border:none; color:var(--accent); font-weight:600; font-size:14px; padding:6px 2px; font-family:var(--sans);}
+  #formStash{display:none;}
+  .more-btn{display:block; width:100%; background:none; border:none; color:var(--accent);
+    font-family:var(--sans); font-size:13px; font-weight:500; padding:10px 0 2px; margin-top:2px;}
+  /* sleep */
+  .sleep-hrs{text-align:center; font-family:var(--mono); font-size:26px; font-weight:600; margin:2px 0 10px;}
+  .sleep-hrs small{display:block; font-family:var(--sans); font-size:12px; font-weight:400; color:var(--muted);}
+  .sq-row{display:flex; gap:6px; margin-bottom:12px;}
+  .sq{flex:1; min-width:0; border-radius:9px; padding:9px 0 8px; border:2px solid transparent; font-family:var(--sans); font-size:12px;
+    font-weight:600; color:var(--text); background:color-mix(in srgb, var(--c) 18%, var(--panel-2));}
+  .sq b{display:block; font-size:16px; font-family:var(--mono);}
+  .sq.on{background:var(--c); border-color:var(--c); color:#15161A;}
+  .qdot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle;}
+  .qpill{font-family:var(--sans); font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; color:#15161A;}
+  body.modal-open .toast{bottom:auto; top:calc(10px + env(safe-area-inset-top,0px));}
+  .stat-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .stat-head .big small{font-size:13px; color:var(--muted); font-weight:400;}
+  .stat-sub{font-size:12px; color:var(--muted); margin:3px 0 10px;}
   .swatches{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center;}
   .sw{width:30px; height:30px; border-radius:50%; border:2px solid var(--border); padding:0;}
   .sw.on{border-color:var(--text); box-shadow:0 0 0 2px var(--panel) inset;}
@@ -242,7 +299,7 @@
 <body>
 <div class="app">
   <header>
-    <h1>Bloobledoop</h1>
+    <h1 id="appTitle" onclick="titleTap()">Bloobledoop</h1>
     <div class="hdr-r">
       <button class="hdr-btn" id="backToday" hidden onclick="setDay(todayStr())">Today</button>
       <label class="datepick" id="datePick"><span id="todayLabel"></span>▾<input type="date" id="dayPicker" onchange="setDay(this.value)" onclick="try{this.showPicker()}catch(e){}"></label>
@@ -270,40 +327,6 @@
 
     <!-- FOOD -->
     <section class="view" id="view-food">
-      <h2 class="section-title">Log a meal</h2>
-      <div class="card">
-        <div style="margin-bottom:10px;">
-          <button class="chip on" id="modeLib" onclick="setFoodMode('lib')" style="margin:0 6px 0 0;">From library</button>
-          <button class="chip" id="modeQuick" onclick="setFoodMode('quick')" style="margin:0;">Quick add</button>
-        </div>
-        <div id="foodModeLib">
-          <label>Food — type to search</label>
-          <div class="combo" id="comboFood"></div>
-          <div class="row">
-            <div><label>Servings</label><input type="number" id="logServings" step="0.25" value="1"></div>
-            <div><label>Meal</label>
-              <select id="logMealType">
-                <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn block" onclick="logMeal()">Log meal</button>
-        </div>
-        <div id="foodModeQuick" hidden>
-          <label>What was it (optional)</label>
-          <input id="qName" placeholder="e.g. restaurant burrito">
-          <div class="row">
-            <div><label>Carbs</label><input type="number" id="qCarb" placeholder="0"></div>
-            <div><label>Protein</label><input type="number" id="qProt" placeholder="0"></div>
-            <div><label>Fat</label><input type="number" id="qFat" placeholder="0"></div>
-          </div>
-          <label>Meal</label>
-          <select id="qMealType"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select>
-          <button class="btn block" onclick="quickAddMeal()">Log it</button>
-          <div class="hint" style="margin:8px 0 0;">Logged once, not saved to your library.</div>
-        </div>
-      </div>
-
       <h2 class="section-title" id="foodDayTitle">Eaten today</h2>
       <div class="card" id="todayMealsList"></div>
 
@@ -326,29 +349,12 @@
 
     <!-- LIFTS -->
     <section class="view" id="view-lifts">
-      <div class="card"><button class="btn block sx-main" id="startSessionBtn" onclick="openSessionMenu()">Start session</button></div>
+      <button class="btn block sx-main" id="startSessionBtn" onclick="openSessionMenu()" style="margin-bottom:6px;">Start session</button>
 
-      <h2 class="section-title">Log a set</h2>
+      <h2 class="section-title">Lift history</h2>
       <div class="card">
-        <label>Exercise — type to search</label>
-        <div class="combo" id="comboLift"></div>
-        <div id="logLiftPanel" hidden>
-          <div id="logLiftChart"></div>
-          <hr style="border:none; border-top:1px solid var(--border); margin:10px 0;">
-        </div>
-        <div class="row">
-          <div><label>Weight (<span class="u">lb</span>)</label><input type="number" id="liftWeight" step="any" inputmode="decimal"></div>
-          <div><label>Reps</label><input type="number" id="liftReps" step="1" inputmode="numeric"></div>
-        </div>
-        <div class="flexrow" style="margin-bottom:8px;">
-          <span class="muted" style="font-size:12px;">Track RPE for this lift</span>
-          <button class="chip" id="rpeToggle" onclick="toggleRpe()" style="margin:0;">Off</button>
-        </div>
-        <div id="rpeField" hidden>
-          <label>RPE (6–10, half points ok)</label>
-          <input type="number" id="liftRpe" step="0.5" min="5" max="10" placeholder="e.g. 8.5">
-        </div>
-        <button class="btn block" onclick="logSet()">Log set</button>
+        <div class="combo" id="comboLook"></div>
+        <div id="logLiftPanel" hidden><div id="logLiftChart" style="margin-top:10px;"></div></div>
       </div>
 
       <h2 class="section-title" id="liftDayTitle">Sets today</h2>
@@ -379,17 +385,7 @@
       </div>
 
       <h2 class="section-title">Cardio</h2>
-      <div class="card">
-        <label>Activity</label>
-        <div class="combo" id="comboCardio"></div>
-        <div class="row">
-          <div><label>Minutes</label><input type="number" id="cardioMin" step="any" inputmode="decimal" placeholder="30"></div>
-          <div style="display:flex; align-items:flex-end; margin-bottom:10px;">
-            <button class="btn block" onclick="logCardio()">Log cardio</button>
-          </div>
-        </div>
-        <div id="cardioDayList"></div>
-      </div>
+      <div class="card" id="cardioDayList"></div>
       <div class="card" id="cardioChartWrap"></div>
 
     </section>
@@ -470,40 +466,19 @@
     <section class="view" id="view-body">
       <h2 class="section-title">Bodyweight</h2>
       <div class="card">
-        <div class="row">
-          <div><label>Weight (<span class="u">lb</span>)</label><input type="number" id="bwInput" step="any" inputmode="decimal"></div>
-          <div style="display:flex; align-items:flex-end; margin-bottom:10px;">
-            <button class="btn block" onclick="logBodyweight()">Log</button>
-          </div>
-        </div>
-        <div id="bwStat" class="muted" style="font-size:12.5px; margin-bottom:8px;"></div>
+        <div id="bwStat"></div>
         <div id="bwChartWrap"></div>
       </div>
       <div class="card" id="bwList"></div>
 
       <h2 class="section-title">Blood pressure</h2>
       <div class="card">
-        <div class="row">
-          <div><label>Systolic</label><input type="number" id="bpSys" placeholder="120"></div>
-          <div><label>Diastolic</label><input type="number" id="bpDia" placeholder="78"></div>
-          <div><label>Pulse</label><input type="number" id="bpPulse" placeholder="60"></div>
-        </div>
-        <button class="btn block" onclick="logBp()">Log reading</button>
-        <div id="bpStat" class="muted" style="font-size:12.5px; margin:10px 0 8px;"></div>
+        <div id="bpStat" style="margin-bottom:10px;"></div>
         <div id="bpChartWrap"></div>
       </div>
       <div class="card" id="bpList"></div>
 
       <h2 class="section-title">Sleep</h2>
-      <div class="card">
-        <div class="row">
-          <div><label>Bedtime</label><input type="time" id="sleepBed"></div>
-          <div><label>Wake time</label><input type="time" id="sleepWake"></div>
-        </div>
-        <label>Quality (1–5)</label>
-        <input type="number" id="sleepQuality" min="1" max="5" value="3">
-        <button class="btn block" onclick="logSleep()">Log sleep</button>
-      </div>
       <div class="card"><div id="sleepChartWrap"></div></div>
       <div class="card" id="sleepHistoryList"></div>
 
@@ -522,10 +497,14 @@
 
       <h2 class="section-title">Bloodwork</h2>
       <div id="labsWrap"></div>
+      <div class="hint" style="margin:0 2px 10px;">Not medical advice — ranges come from your lab. Talk to your doctor about anything flagged.</div>
     </section>
 
     <!-- MORE -->
     <section class="view" id="view-settings">
+      <h2 class="section-title" id="proTitle">Support the app</h2>
+      <div class="card" id="proCard"></div>
+
       <h2 class="section-title">Powerlifting lifts</h2>
       <div class="card">
         <p class="muted" style="font-size:12px; margin-top:0;">Pick which exercises drive the squat / bench / deadlift readout on Today.</p>
@@ -588,13 +567,94 @@
   </main>
   <button id="sessionBar" hidden onclick="showSession()"></button>
   <nav class="tabs">
-    <button class="active" data-view="dash" onclick="showView('dash')"><span class="ic">◆</span>Today</button>
-    <button data-view="food" onclick="showView('food')"><span class="ic">◇</span>Food</button>
-    <button data-view="lifts" onclick="showView('lifts')"><span class="ic">▲</span>Lifts</button>
-    <button data-view="meds" onclick="showView('meds')"><span class="ic">✚</span>Meds</button>
-    <button data-view="body" onclick="showView('body')"><span class="ic">☾</span>Body</button>
-    <button data-view="settings" onclick="showView('settings')"><span class="ic">⚙</span>More</button>
+    <button class="active" data-view="dash" onclick="showView('dash')"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg>Today</button>
+    <button data-view="food" onclick="showView('food')"><svg class="ic" viewBox="0 0 24 24"><path d="M7 3.5v17"/><path d="M4.5 3.5v4.5a2.5 2.5 0 0 0 5 0V3.5"/><path d="M17.5 20.5V3.5c-2.2 1.2-3.3 3.8-3.3 7.2v2.3h3.3"/></svg>Food</button>
+    <button data-view="lifts" onclick="showView('lifts')"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>Lifts</button>
+    <button class="plus" onclick="openAdd()" aria-label="Add"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></button>
+    <button data-view="meds" onclick="showView('meds')"><svg class="ic" viewBox="0 0 24 24"><path d="M10.2 20.2a5 5 0 0 1-7-7l6.6-6.6a5 5 0 0 1 7 7z"/><path d="m8.5 8.5 7 7"/></svg>Meds</button>
+    <button data-view="body" onclick="showView('body')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/><path d="M4.8 12.5h3.7l1.5-2.4 2.3 4.6 1.5-2.2h5.4"/></svg>Body</button>
+    <button data-view="settings" onclick="showView('settings')"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></svg>More</button>
   </nav>
+</div>
+<div id="formStash">
+  <div class="qform" id="fLift">
+    <div class="combo" id="comboLift"></div>
+    <div id="logLiftHint" style="margin:-2px 0 10px;"></div>
+    <div class="row">
+      <div><label>Weight (<span class="u">lb</span>)</label><input type="number" id="liftWeight" step="any" inputmode="decimal"></div>
+      <div><label>Reps</label><input type="number" id="liftReps" step="1" inputmode="numeric"></div>
+    </div>
+    <div class="flexrow" style="margin-bottom:8px;">
+      <span class="muted" style="font-size:12px;">Track RPE for this lift</span>
+      <button class="chip sm" id="rpeToggle" onclick="toggleRpe()" style="margin:0;">Off</button>
+    </div>
+    <div id="rpeField" hidden>
+      <label>RPE (6–10, half points ok)</label>
+      <input type="number" id="liftRpe" step="0.5" min="5" max="10" inputmode="decimal" placeholder="e.g. 8.5">
+    </div>
+    <button class="btn block" onclick="logSet()">Log set</button>
+  </div>
+  <div class="qform" id="fFood">
+        <div style="margin-bottom:10px;">
+          <button class="chip on" id="modeLib" onclick="setFoodMode('lib')" style="margin:0 6px 0 0;">From library</button>
+          <button class="chip" id="modeQuick" onclick="setFoodMode('quick')" style="margin:0;">Quick add</button>
+        </div>
+        <div id="foodModeLib">
+          <label>Food — type to search</label>
+          <div class="combo" id="comboFood"></div>
+          <div class="row">
+            <div><label>Servings</label><input type="number" id="logServings" step="0.25" value="1"></div>
+            <div><label>Meal</label>
+              <select id="logMealType">
+                <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn block" onclick="logMeal()">Log meal</button>
+        </div>
+        <div id="foodModeQuick" hidden>
+          <label>What was it (optional)</label>
+          <input id="qName" placeholder="e.g. restaurant burrito">
+          <div class="row">
+            <div><label>Carbs</label><input type="number" id="qCarb" placeholder="0"></div>
+            <div><label>Protein</label><input type="number" id="qProt" placeholder="0"></div>
+            <div><label>Fat</label><input type="number" id="qFat" placeholder="0"></div>
+          </div>
+          <label>Meal</label>
+          <select id="qMealType"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select>
+          <button class="btn block" onclick="quickAddMeal()">Log it</button>
+          <div class="hint" style="margin:8px 0 0;">Logged once, not saved to your library.</div>
+        </div>
+      </div>
+  <div class="qform" id="fCardio">
+    <label>Activity</label>
+    <div class="combo" id="comboCardio"></div>
+    <label>Minutes</label><input type="number" id="cardioMin" step="any" inputmode="decimal" placeholder="30">
+    <button class="btn block" onclick="logCardio()">Log cardio</button>
+  </div>
+  <div class="qform" id="fBw">
+    <label>Weight (<span class="u">lb</span>)</label><input type="number" id="bwInput" step="any" inputmode="decimal">
+    <button class="btn block" onclick="logBodyweight()">Log weight</button>
+  </div>
+  <div class="qform" id="fBp">
+    <div class="row">
+      <div><label>Systolic</label><input type="number" id="bpSys" inputmode="numeric" placeholder="120"></div>
+      <div><label>Diastolic</label><input type="number" id="bpDia" inputmode="numeric" placeholder="78"></div>
+      <div><label>Pulse</label><input type="number" id="bpPulse" inputmode="numeric" placeholder="60"></div>
+    </div>
+    <button class="btn block" onclick="logBp()">Log reading</button>
+  </div>
+  <div class="qform" id="fSleep">
+    <div class="row">
+      <div><label>Went to bed</label><input type="time" id="sleepBed" oninput="updSleepHrs()" onchange="updSleepHrs()"></div>
+      <div><label>Woke up</label><input type="time" id="sleepWake" oninput="updSleepHrs()" onchange="updSleepHrs()"></div>
+    </div>
+    <div class="sleep-hrs" id="sleepHrs"></div>
+    <label>How did you sleep?</label>
+    <div class="sq-row" id="sqRow"></div>
+    <input type="hidden" id="sleepQuality" value="3">
+    <button class="btn block" onclick="logSleep()">Log sleep</button>
+  </div>
 </div>
 <div class="session" id="sessionOv" hidden></div>
 <div class="toast" id="toast"></div>
@@ -610,7 +670,7 @@ function defaultStore(){
     foods:[], meals:[], exercises:[], sets:[], sleep:[],
     bloodwork:[], doses:[], bodyweight:[], bp:[], rpeExercises:[],
     medSchedule:[], medLog:[], medPresets:[], cardio:[], theme:{accent:null,mode:'auto'}, unit:'lb', collapsed:{'view-food:Food library':true,'view-lifts:Lift library':true,'view-meds:Add to schedule':true},
-    goals:{bw:null,lifts:{}}, plans:[], session:null, labs:[], labResults:[],
+    goals:{bw:null,lifts:{}}, plans:[], session:null, labs:[], labResults:[], pro:null,
     sbd:{squat:null,bench:null,deadlift:null},
     targets:{carb:0,prot:0,fat:0},
     reminders:{mealTimes:[],sleepTime:'',bwDay:null},
@@ -784,6 +844,7 @@ function renderCurrent(){
   ({dash:renderDash,food:renderFood,lifts:renderLifts,meds:renderMeds,body:renderBody,settings:renderSettings}[currentView])();
 }
 function renderHeader(){
+  const tt=document.getElementById('appTitle'); if(tt) tt.innerHTML='Bloobledoop'+(isPro()?'<span class="pro-badge">✦</span>':'');
   document.getElementById('todayLabel').textContent=dayLabel();
   document.getElementById('datePick').classList.toggle('past',!isToday());
   document.getElementById('backToday').hidden=isToday();
@@ -813,7 +874,7 @@ function onAccent(hex){
 function applyTheme(){
   const t=DB.theme||{}, r=document.documentElement;
   if(t.mode==='light'||t.mode==='dark') r.dataset.theme=t.mode; else delete r.dataset.theme;
-  if(t.accent){ r.style.setProperty('--accent',t.accent); r.style.setProperty('--on-accent',onAccent(t.accent)); }
+  if(t.accent&&unlocked()){ r.style.setProperty('--accent',t.accent); r.style.setProperty('--on-accent',onAccent(t.accent)); }
   else { r.style.removeProperty('--accent'); r.style.removeProperty('--on-accent'); }
   const meta=document.querySelector('meta[name="theme-color"]'); if(meta) meta.content=cssVar('--bg','#15161A');
 }
@@ -823,6 +884,7 @@ function normHex(v){
   return /^[0-9a-f]{6}$/i.test(v)?'#'+v.toUpperCase():null;
 }
 function setAccent(hex){
+  if(hex&&!unlocked()){ openPro('colors'); return; }
   DB.theme=Object.assign({mode:'auto'},DB.theme,{accent:hex||null}); save(); applyTheme();
   syncColorUI(); renderHeader();
 }
@@ -843,12 +905,15 @@ function setThemeMode(m){ DB.theme=Object.assign({accent:null},DB.theme,{mode:m}
 function renderColors(){
   const t=DB.theme||{};
   if(document.getElementById('hexPick')===document.activeElement) return;
-  document.getElementById('accentSwatches').innerHTML=ACCENTS.map(a=>`<button class="sw" data-a="${a||''}" title="${a?a:'Default'}"
+  const pro=unlocked(), lk=pro?'':' locked';
+  document.getElementById('accentSwatches').innerHTML=ACCENTS.map(a=>`<button class="sw${a?lk:''}" data-a="${a||''}" title="${a?a:'Default'}"
       style="background:${a||'#D9A441'}" onclick="setAccent(${a?`'${a}'`:'null'})"></button>`).join('')
-    + `<label class="sw sw-custom" title="Pick any color"><input type="color" id="hexPick" value="${(t.accent||'#D9A441').toLowerCase()}" oninput="setAccent(this.value.toUpperCase())"></label>`
-    + `<div style="flex-basis:100%; display:flex; gap:8px; align-items:center;">
+    + (pro?`<label class="sw sw-custom" title="Pick any color"><input type="color" id="hexPick" value="${(t.accent||'#D9A441').toLowerCase()}" oninput="setAccent(this.value.toUpperCase())"></label>`
+          :`<button class="sw sw-custom locked" title="Supporter perk" onclick="openPro('colors')"></button>`)
+    + (pro?`<div style="flex-basis:100%; display:flex; gap:8px; align-items:center;">
         <input id="hexIn" maxlength="7" placeholder="Hex, e.g. #4F8FE0" autocomplete="off" autocapitalize="characters" spellcheck="false"
-          style="margin:0; font-family:var(--mono); max-width:180px;" oninput="onHexType(this)"></div>`;
+          style="margin:0; font-family:var(--mono); max-width:180px;" oninput="onHexType(this)"></div>`
+        :`<div class="hint" style="flex-basis:100%;">Custom colors are a supporter perk — light & dark are free.</div>`);
   syncColorUI();
   document.getElementById('themeChips').innerHTML=[['auto','Match phone'],['light','Light'],['dark','Dark']]
     .map(([k,l])=>`<button class="chip${(t.mode||'auto')===k?' on':''}" onclick="setThemeMode('${k}')">${l}</button>`).join('');
@@ -888,8 +953,12 @@ function askConfirm(msg,yesLabel,onYes,onNo){
     <button class="btn danger block" onclick="_yes()">${esc(yesLabel)}</button>
     <button class="btn secondary block" style="margin-top:8px;" onclick="_no()">Cancel</button>`);
 }
-function openModal(html){ document.getElementById('sheet').innerHTML=html; document.getElementById('modal').hidden=false; }
-function closeModal(){ document.getElementById('modal').hidden=true; }
+function stashForms(){ const st=document.getElementById('formStash'); document.querySelectorAll('#sheet .qform').forEach(n=>st.appendChild(n)); }
+function openModal(html){
+  stashForms(); const sh=document.getElementById('sheet'); sh.innerHTML=html; sh.scrollTop=0;
+  document.getElementById('modal').hidden=false; document.body.classList.add('modal-open');
+}
+function closeModal(){ stashForms(); document.getElementById('modal').hidden=true; document.body.classList.remove('modal-open'); }
 function attachLongPress(container, handler){
   let timer=null, target=null;
   const start=e=>{
@@ -988,7 +1057,7 @@ function svgChart(series, opts){
       const bw=(W-padL-padR)/Math.max(1,dates.length);
       s.points.forEach(p=>{
         const h=Math.max(1,(H-padB)-y(p.v));
-        body+=`<rect x="${(x(xi(p.date))-bw/2+1.5).toFixed(1)}" y="${y(p.v).toFixed(1)}" width="${Math.max(2,bw-3).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${s.color}"/>`;
+        body+=`<rect x="${(x(xi(p.date))-bw/2+1.5).toFixed(1)}" y="${y(p.v).toFixed(1)}" width="${Math.max(2,bw-3).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${p.c||s.color}"/>`;
       });
     } else {
       const pts=s.points.map(p=>`${x(xi(p.date)).toFixed(1)},${y(p.v).toFixed(1)}`);
@@ -1178,7 +1247,7 @@ function renderDash(){
 
   const ls=DB.sleep.find(s=>s.date===curDay());
   document.getElementById('dashSleep').innerHTML=ls
-    ?`<div class="flexrow"><span>${ls.bed}–${ls.wake}</span><span class="num">${ls.hours.toFixed(1)} hrs · quality ${ls.quality}/5</span></div>`
+    ?`<div class="flexrow"><span>${ls.bed}–${ls.wake}</span><span class="num">${ls.hours.toFixed(1)}h <span class="qpill" style="background:${sqOf(ls.quality).c}">${sqOf(ls.quality).l}</span></span></div>`
     :`<div class="empty">No sleep logged ${dayWord()}</div>`;
 }
 
@@ -1210,10 +1279,10 @@ function renderFood(){
 function renderFoodLibrary(){
   const q=(document.getElementById('foodFilter').value||'').toLowerCase();
   const list=DB.foods.filter(f=>f.name.toLowerCase().includes(q));
-  document.getElementById('foodLibraryList').innerHTML=list.length?list.map(f=>`
+  document.getElementById('foodLibraryList').innerHTML=list.length?seeMore(q?'foodq':'food',list.map(f=>`
     <div class="listrow" data-lp="${f.id}"><div><div class="r-title">${esc(f.name)}</div>
       <div class="r-sub num">P${f.prot} C${f.carb} F${f.fat} · ${Math.round(f.carb*4+f.prot*4+f.fat*9)} kcal</div></div>
-    <button class="del" onclick="delFood('${f.id}')">delete</button></div>`).join(''):'<div class="empty">No matches</div>';
+    <button class="del" onclick="delFood('${f.id}')">delete</button></div>`),q?50:10,'renderFoodLibrary()'):'<div class="empty">No matches</div>';
 }
 function editFood(id){
   const f=DB.foods.find(x=>x.id===id); if(!f) return;
@@ -1249,7 +1318,7 @@ function logMeal(){
   if(!foodId){ toast('Pick a food from the list'); return; }
   DB.meals.push({id:uid(),date:curDay(),time:nowHM(),foodId,servings:+document.getElementById('logServings').value||1,mealType:document.getElementById('logMealType').value});
   save(); comboFood.clear(); document.getElementById('logServings').value=1;
-  renderFood(); toast(loggedMsg());
+  renderCurrent(); toast(loggedMsg());
 }
 function quickAddMeal(){
   const carb=+document.getElementById('qCarb').value||0, prot=+document.getElementById('qProt').value||0, fat=+document.getElementById('qFat').value||0;
@@ -1259,7 +1328,7 @@ function quickAddMeal(){
     mealType:document.getElementById('qMealType').value});
   save();
   ['qName','qCarb','qProt','qFat'].forEach(i=>document.getElementById(i).value='');
-  renderFood(); toast(loggedMsg());
+  renderCurrent(); toast(loggedMsg());
 }
 function delMeal(id){ DB.meals=DB.meals.filter(m=>m.id!==id); save(); renderFood(); }
 
@@ -1300,11 +1369,14 @@ function dayLiftsHtml(date,withDelete){
       ${prev?`<div class="sub-l">Last session, ${dayLabel(prev.date)}</div><div class="sets">${prev.sets.map(s=>setChip(s)).join('')}</div>`:''}</div>`;
   }).join('');
 }
+let comboLook;
 function renderLifts(){
   if(!comboLift){
     comboLift=new Combo('comboLift',{placeholder:'Search exercises',getItems:exItems,onChange:onLiftPicked});
+    comboLook=new Combo('comboLook',{placeholder:'Search a lift to see its history',getItems:exItems,onChange:()=>renderLogLiftChart()});
     attachLongPress(document.getElementById('exLibraryList'),editExercise);
   }
+  if(!comboLook.value&&DB.sets.length){ const last=DB.sets[DB.sets.length-1]; if(DB.exercises.some(e=>e.id===last.exId)) comboLook.setSelection(last.exId); }
   renderExLibrary(); renderLogLiftChart();
   document.getElementById('liftDayTitle').textContent='Sets '+dayWord();
   document.getElementById('liftHistoryList').innerHTML=dayLiftsHtml(curDay(),true)||`<div class="empty">No sets logged ${dayWord()}</div>`;
@@ -1448,6 +1520,96 @@ function disconnectSync(){
 document.addEventListener('visibilitychange',()=>{ if(!SYNC) return; if(document.visibilityState==='visible') syncNow(); else if(SYNC.dirty) syncNow(); });
 window.addEventListener('online',()=>{ if(SYNC) syncNow(); });
 
+/* ============ supporter / pro ============
+   Fill these in after setting up Whop + the Cloudflare Worker (see SETUP-PAYMENTS.md). */
+const PRO_CONFIG={
+  workerUrl:'',   // e.g. https://bloob-license.yourname.workers.dev
+  buyOnce:'',     // Whop checkout link for the $25 one-time plan
+  buyMonthly:'',  // Whop checkout link for the $5/mo split-pay plan
+};
+const FREE_PLANS=5;
+/* Payments are OFF for now: nothing is limited and the support card is hidden.
+   Flip to true once Whop + the license worker are set up. */
+const PRO_ENABLED=false;
+function isPro(){ return !!(DB&&DB.pro&&DB.pro.ok); }
+function unlocked(){ return !PRO_ENABLED||isPro(); }
+function proPitch(reason){
+  const why={plans:`The free version includes ${FREE_PLANS} workout plans — supporters get unlimited.`,
+             colors:'Custom accent colors are a supporter perk. Light and dark mode are free for everyone.'}[reason];
+  const buy=(url,big,small,cls)=>url?`<a class="btn ${cls}" href="${esc(url)}" target="_blank" rel="noopener">${big}<small>${small}</small></a>`:'';
+  const links=buy(PRO_CONFIG.buyOnce,'$25 once','pay it and done','')+buy(PRO_CONFIG.buyMonthly,'$5 / month','stops after $25','secondary');
+  return `${why?`<p class="pro-msg" style="font-weight:600;">${why}</p>`:''}
+    <p class="pro-msg">Hey — real talk. This whole app is one file, so if you really want, you can dig through the code and unlock everything for free. I won’t stop you.</p>
+    <p class="pro-msg">I’m a college kid and this started as a fun project. The free version isn’t broken or nagging — paying is just a way to help me out if you use it a lot or want to say thanks. Supporters get unlimited workout plans, custom colors, and a little something hidden in the app. 🫶</p>
+    ${links?`<div class="pro-buy">${links}</div>`:'<div class="hint" style="margin-bottom:12px;">Payment links aren’t set up yet.</div>'}
+    <label>Already paid? Paste your license key</label>
+    <input id="proKey" placeholder="From your Whop purchase" autocomplete="off" autocapitalize="characters" spellcheck="false" style="font-family:var(--mono);">
+    <button class="btn block" id="proBtn" onclick="unlockPro()">Unlock</button>`;
+}
+function openPro(reason){
+  if(isPro()) return;
+  openModal(`<h3>Support Bloobledoop</h3>${proPitch(reason)}<button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Maybe later</button>`);
+}
+function renderProCard(){
+  const el=document.getElementById('proCard'); if(!el) return;
+  el.innerHTML=isPro()
+    ?`<div class="flexrow"><span style="font-weight:600;">✦ Supporter</span><span class="muted" style="font-size:12px;">since ${shortD(DB.pro.since)}</span></div>
+      <p class="pro-msg" style="margin:8px 0 0;">Thank you, genuinely. Everything’s unlocked on every device you sync. (Psst — try tapping the app name a few times.)</p>`
+    :proPitch();
+}
+async function unlockPro(){
+  const key=(document.getElementById('proKey').value||'').trim();
+  if(!key){ toast('Paste your license key'); return; }
+  if(!PRO_CONFIG.workerUrl){ toast('License checking isn’t set up yet'); return; }
+  const btn=document.getElementById('proBtn'); btn.disabled=true; btn.textContent='Checking…';
+  try{
+    const r=await fetch(PRO_CONFIG.workerUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});
+    const j=await r.json();
+    if(!j.valid){ toast(j.reason==='not_found'||j.reason==='bad_key'?'That key wasn’t found — check for typos':'That key isn’t active'); return; }
+    DB.pro={ok:true,key,since:todayStr()}; save(); applyTheme();
+    closeModal(); renderCurrent(); renderHeader();
+    confetti(90); setTimeout(()=>bloob('you’re a real one. thank u 🫶'),600);
+  }catch(e){ toast('Couldn’t reach the license server — check your connection'); }
+  finally{ if(document.getElementById('proBtn')){ btn.disabled=false; btn.textContent='Unlock'; } }
+}
+function confetti(n){
+  const colors=[cssVar('--accent','#D9A441'),'#4F8FE0','#5FA85A','#E07BB0','#9A7CE0','#D0574B'];
+  for(let i=0;i<n;i++){
+    const c=document.createElement('div'); c.className='confetti';
+    c.style.left=Math.random()*100+'vw'; c.style.background=colors[i%colors.length];
+    c.style.setProperty('--dx',(Math.random()*120-60)+'px'); c.style.setProperty('--rot',(Math.random()*900-450)+'deg');
+    c.style.animationDuration=(1.6+Math.random()*1.4)+'s'; c.style.animationDelay=(Math.random()*.3)+'s';
+    document.body.appendChild(c); setTimeout(()=>c.remove(),3500);
+  }
+}
+/* the easter egg: a little blob friend, for supporters */
+const BLOOB_LINES=['u lifted. i watched. proud of u','bloob approves of ur progressive overload','hydrate or diedrate','that set was mid. jk ily',
+  'one more rep. i believe in u','thanks for funding a college kid’s ramen','i don’t have legs but i’d still hit legs','your bloodwork called. it said hi',
+  'rest timer? i barely know her','bloob is small but bloob is mighty'];
+let bloobOn=false;
+function bloob(line){
+  if(bloobOn) return; bloobOn=true;
+  const c=cssVar('--accent','#D9A441');
+  const el=document.createElement('div'); el.className='bloob';
+  el.innerHTML=`<div class="say">${esc(line||BLOOB_LINES[Math.floor(Math.random()*BLOOB_LINES.length)])}</div>
+    <svg width="72" height="66" viewBox="0 0 72 66"><ellipse cx="36" cy="63" rx="22" ry="3" fill="#000" opacity=".18"/>
+      <path d="M8 44 C4 22 20 6 37 6 C55 6 69 20 65 42 C63 56 50 61 36 61 C21 61 10 56 8 44Z" fill="${c}"/>
+      <ellipse cx="27" cy="30" rx="6.5" ry="8" fill="#fff"/><ellipse cx="47" cy="30" rx="6.5" ry="8" fill="#fff"/>
+      <circle cx="29" cy="32" r="3.4" fill="#191A16"/><circle cx="49" cy="32" r="3.4" fill="#191A16"/>
+      <path d="M30 44 Q37 50 44 44" stroke="#191A16" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="19" cy="41" rx="4" ry="2.5" fill="#fff" opacity=".35"/><ellipse cx="55" cy="41" rx="4" ry="2.5" fill="#fff" opacity=".35"/></svg>`;
+  document.body.appendChild(el);
+  setTimeout(()=>{ el.remove(); bloobOn=false; },5600);
+}
+let taps=[];
+function titleTap(){
+  const now=Date.now(); taps=taps.filter(t=>now-t<1800); taps.push(now);
+  if(taps.length<5) return;
+  taps=[];
+  if(isPro()){ bloob(); confetti(30); }
+  else toast('👀 something lives here… supporters only');
+}
+
 /* ============ bloodwork ============ */
 const LAB_CATS=[
   ['Metabolic',/\b(a1c|hba1c|glucose|insulin|homa)/],
@@ -1586,8 +1748,8 @@ function renderLabs(){
   wrap.innerHTML=(cats.length?cats.map(c=>`<div class="card"><div class="lab-cat">${esc(c)}</div><div class="labs">${labsIn(c).map(labCard).join('')}</div></div>`).join('')
       :'<div class="card"><div class="empty">No labs yet — paste a panel above</div></div>')
     +(DB.labs.length?'<div class="hint" style="margin:-2px 0 8px;">Tap a lab to see its history, edit its range, or move it.</div>':'')
-    +(old.length?`<div class="card"><div class="lab-cat">Earlier text entries</div>${old.map(p=>`<div class="listrow"><div><div class="r-title">${p.date}</div>
-        <div class="r-sub">${esc(p.markers).replace(/\n/g,' · ')}${p.notes?' — '+esc(p.notes):''}</div></div><button class="del" onclick="delBw('${p.id}')">×</button></div>`).join('')}</div>`:'');
+    +(old.length?`<div class="card"><div class="lab-cat">Earlier text entries</div>${seeMore('oldbw',old.map(p=>`<div class="listrow"><div><div class="r-title">${p.date}</div>
+        <div class="r-sub">${esc(p.markers).replace(/\n/g,' · ')}${p.notes?' — '+esc(p.notes):''}</div></div><button class="del" onclick="delBw('${p.id}')">×</button></div>`),5)}</div>`:'');
 }
 function openLab(id){
   if(id&&Date.now()-(window._scrubAt||0)<500) return;
@@ -1598,8 +1760,8 @@ function openLab(id){
   const nb=v=>v==null?'':v;
   openModal(`<h3>${id?esc(l.name):'New lab'}</h3>
     ${rs.length?labChart(l,rs,true):''}
-    ${id?`${rs.slice().reverse().map(r=>{ const f=labOut(r,l); return `<div class="listrow"><span>${dayLabel(r.date)}</span>
-        <div class="r-val"><span class="num ${f?'bad':''}">${esc(r.q)}${r.v} ${esc(l.unit||'')}${f?' '+f.toUpperCase():''}</span><button class="del" onclick="delLabResult('${r.id}','${id}')">×</button></div></div>`; }).join('')}
+    ${id?`${seeMore('lab'+id,rs.slice().reverse().map(r=>{ const f=labOut(r,l); return `<div class="listrow"><span>${dayLabel(r.date)}</span>
+        <div class="r-val"><span class="num ${f?'bad':''}">${esc(r.q)}${r.v} ${esc(l.unit||'')}${f?' '+f.toUpperCase():''}</span><button class="del" onclick="delLabResult('${r.id}','${id}')">×</button></div></div>`; }),5,`openLab('${id}')`)}
       <div class="row" style="align-items:flex-end; margin-top:10px;">
         <div><label>Date</label><input type="date" id="lrDate" value="${curDay()}"></div>
         <div><label>Value</label><input type="number" step="any" inputmode="decimal" id="lrVal"></div>
@@ -1659,6 +1821,85 @@ function addLabResult(id){
 }
 function delLabResult(rid,id){ DB.labResults=DB.labResults.filter(r=>r.id!==rid); save(); renderLabs(); openLab(id); }
 
+/* ============ + quick add ============ */
+const QI={
+  lift:'<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
+  food:'<path d="M7 3.5v17"/><path d="M4.5 3.5v4.5a2.5 2.5 0 0 0 5 0V3.5"/><path d="M17.5 20.5V3.5c-2.2 1.2-3.3 3.8-3.3 7.2v2.3h3.3"/>',
+  cardio:'<path d="M3 12h4l2.5-6 5 12 2.5-6h4"/>',
+  bw:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 10a4.5 4.5 0 0 1 7 0"/><path d="m12 10 1.6-1.8"/>',
+  bp:'<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  sleep:'<path d="M19.5 14.5A7.5 7.5 0 1 1 9.5 4.5a6 6 0 0 0 10 10z"/>',
+};
+const QA=[
+  {k:'lift',f:'fLift',t:'Log a set',s:'Weight × reps, with last session shown'},
+  {k:'food',f:'fFood',t:'Log food',s:'From your library or quick macros'},
+  {k:'cardio',f:'fCardio',t:'Cardio',s:'Activity and minutes'},
+  {k:'bw',f:'fBw',t:'Bodyweight',daily:()=>DB.bodyweight.some(b=>b.date===curDay())},
+  {k:'bp',f:'fBp',t:'Blood pressure',daily:()=>DB.bp.some(b=>b.date===curDay())},
+  {k:'sleep',f:'fSleep',t:'Sleep',daily:()=>DB.sleep.some(s=>s.date===curDay())},
+];
+const qIcon=k=>`<span class="qi"><svg viewBox="0 0 24 24">${QI[k]}</svg></span>`;
+function openAdd(){
+  const done=QA.filter(q=>q.daily&&q.daily()), todo=QA.filter(q=>!(q.daily&&q.daily()));
+  openModal(`<h3>${isToday()?'Add':'Add to '+dayLabel()}</h3>
+    ${todo.map(q=>`<button class="qa" onclick="openForm('${q.k}')">${qIcon(q.k)}<span><b>${q.t}</b>
+      ${q.daily?`<small class="due">Not logged ${dayWord()} yet</small>`:`<small>${q.s}</small>`}</span></button>`).join('')}
+    ${done.length?`<div class="qa-done">Already logged ${dayWord()} — tap to redo:<br>${done.map(q=>`<button class="chip sm" onclick="openForm('${q.k}')">✓ ${q.t}</button>`).join('')}</div>`:''}`);
+}
+function ensureForms(){ if(!comboLift||!comboFood||!comboCardio){ renderFood(); renderLifts(); } }
+function openForm(k){
+  ensureForms();
+  const q=QA.find(x=>x.k===k), node=document.getElementById(q.f);
+  openModal(`<div class="sh-head"><button class="sh-back" onclick="openAdd()" aria-label="Back">‹</button>
+    <h3>${q.t}${isToday()?'':' · '+dayLabel()}</h3><button class="sh-done" onclick="closeModal()">Done</button></div>`);
+  document.getElementById('sheet').appendChild(node);
+  renderHeader();
+  if(k==='lift'){ syncRpeToggle(); renderLogHint(); }
+  if(k==='sleep') prepSleepForm();
+  const first={bw:'bwInput',bp:'bpSys'}[k]; if(first) document.getElementById(first).focus();
+}
+function inSheet(id){ const n=document.getElementById(id); return !!(n&&n.closest('#sheet')); }
+/* compact "today / last session" line inside the log-a-set form */
+function renderLogHint(){
+  const el=document.getElementById('logLiftHint'), exId=comboLift?comboLift.value:null;
+  if(!exId){ el.innerHTML='<div class="hint" style="margin:0;">Pick a lift — your last session shows here so you know what to beat.</div>'; return; }
+  const today=setsOn(exId,curDay()), prev=lastSession(exId,curDay());
+  el.innerHTML=(today.length?`<div class="sub-l" style="margin-top:0;">${isToday()?'Today':dayLabel()}</div><div class="sets">${today.map((x,i)=>setChip(x,false,cmpSet(x,prev&&prev.sets[i]))).join('')}</div>`:'')
+    +(prev?`<div class="sub-l"${today.length?'':' style="margin-top:0;"'}>Last session, ${dayLabel(prev.date)} — outlined is next</div><div class="sets">${prev.sets.map((x,i)=>setChip(x,false,i===today.length?'next':'')).join('')}</div>`
+      :'<div class="hint" style="margin:0;">First time logging this lift.</div>');
+}
+/* ---- sleep form ---- */
+const SQ=[{n:1,l:'Awful',c:'#D0574B'},{n:2,l:'Poor',c:'#E0894A'},{n:3,l:'OK',c:'#D9B941'},{n:4,l:'Good',c:'#8BBF5A'},{n:5,l:'Great',c:'#46A96A'}];
+const sqOf=q=>SQ[Math.min(5,Math.max(1,Math.round(q||3)))-1];
+function prepSleepForm(){
+  const last=DB.sleep.slice().sort((a,b)=>a.date.localeCompare(b.date)).pop();
+  const b=document.getElementById('sleepBed'), w=document.getElementById('sleepWake');
+  if(!b.value) b.value=last?last.bed:'23:00';
+  if(!w.value) w.value=last?last.wake:'07:00';
+  setSleepQ(+document.getElementById('sleepQuality').value||3); updSleepHrs();
+}
+function setSleepQ(n){
+  document.getElementById('sleepQuality').value=n;
+  document.getElementById('sqRow').innerHTML=SQ.map(q=>`<button class="sq${q.n===n?' on':''}" style="--c:${q.c}" onclick="setSleepQ(${q.n})"><b>${q.n}</b>${q.l}</button>`).join('');
+}
+function sleepHours(bed,wake){
+  if(!bed||!wake) return null;
+  const [bh,bm]=bed.split(':').map(Number), [wh,wm]=wake.split(':').map(Number);
+  let a=bh*60+bm, z=wh*60+wm; if(z<=a) z+=1440; return (z-a)/60;
+}
+function updSleepHrs(){
+  const h=sleepHours(document.getElementById('sleepBed').value,document.getElementById('sleepWake').value);
+  document.getElementById('sleepHrs').innerHTML=h==null?'—':`${Math.floor(h)}h ${String(Math.round((h%1)*60)).padStart(2,'0')}m<small>${h<6?'short night':h<7?'a bit under 7 hours':h<=9?'solid amount of sleep':'long night'}</small>`;
+}
+/* ---- "see more" for long lists ---- */
+const SHOW_ALL={};
+function seeMore(key,rows,n,rerender){
+  if(rows.length<=n) return rows.join('');
+  const all=!!SHOW_ALL[key];
+  return (all?rows:rows.slice(0,n)).join('')
+    +`<button class="more-btn" onclick="SHOW_ALL['${key}']=${!all}; ${rerender||'renderCurrent()'}">${all?'Show less':`See ${rows.length-n} more`}</button>`;
+}
+
 /* ============ goals ============ */
 function goalRef(lb){ return lb?[{v:W(lb),label:'★'+W(lb),color:'var(--good)'}]:[]; }
 function bwGoalText(latestLb){
@@ -1666,7 +1907,7 @@ function bwGoalText(latestLb){
   const diff=W(latestLb)-W(g);
   return ` · goal ${W(g)} ${unit()} (${Math.abs(diff)<0.05?'reached 🎉':round1(Math.abs(diff))+' to '+(diff>0?'lose':'gain')})`;
 }
-function bwGoalBtn(){ return `<button class="chip sm" style="margin:4px 0 0;" onclick="goalModal('bw')">${DB.goals.bw?'Edit goal':'+ Set goal'}</button>`; }
+function bwGoalBtn(){ return `<button class="chip sm" style="margin:2px 0 0;" onclick="goalModal('bw')">${DB.goals.bw?'Edit goal':'+ Set goal'}</button>`; }
 function goalModal(kind,id){
   const cur=kind==='bw'?DB.goals.bw:DB.goals.lifts[id];
   openModal(`<h3>${kind==='bw'?'Bodyweight goal':esc(exName(id))+' goal'}</h3>
@@ -1695,11 +1936,12 @@ function renderPlans(){
       <div class="r-val" style="display:flex; align-items:center;"><button class="del" style="color:var(--accent)" onclick="openPlanEditor('${p.id}')">edit</button>
         <button class="chip sm on" style="margin:0 0 0 4px;" onclick="startSession('${p.id}')">Start</button></div></div>`).join('')
     :'<div class="hint">Make a plan (bench day, push, upper…) with the exercises, sets and reps you want. Then hit Start session.</div>')
-    +`<button class="btn secondary block" style="margin-top:8px;" onclick="openPlanEditor()">+ New plan</button>`;
+    +`<button class="btn secondary block" style="margin-top:8px;" onclick="openPlanEditor()">+ New plan${unlocked()?'':` <span class="muted" style="font-size:12px;">(${Math.min(DB.plans.length,FREE_PLANS)}/${FREE_PLANS} free)</span>`}</button>`;
 }
 const PLAN_NAMES=['Bench day','Squat day','Deadlift day','Upper','Lower','Push','Pull','Legs','Full body'];
 let planEdit=null, planCombo=null;
 function openPlanEditor(id){
+  if(!id&&!unlocked()&&DB.plans.length>=FREE_PLANS){ openPro('plans'); return; }
   const p=id?DB.plans.find(x=>x.id===id):null;
   planEdit=p?JSON.parse(JSON.stringify(p)):{id:null,name:'',rest:120,items:[]};
   planEdit.addSets=3; planEdit.addReps=5;
@@ -1921,6 +2163,7 @@ function saveSxSet(noRender){
   const set={id:uid(),date:S.date,time:nowHM(),exId:it.exId,weight:w,reps:r,rpe:rpe>=5&&rpe<=10?rpe:null};
   DB.sets.push(set); it.done.push(set.id); S.pending=false;
   let msg=`Saved ${W(w)}×${r}${st&&w>st.best.weight?' — new PR':''}`;
+  if(st&&w>st.best.weight&&isPro()) confetti(40);
   if(it.done.length>=it.sets){ const nx=sxNextIdx(); if(nx>=0){ S.cur=nx; msg+=` · next: ${exName(S.items[nx].exId)}`; } }
   save(); toast(msg);
   if(!noRender) renderSession();
@@ -1974,7 +2217,7 @@ function renderCardio(){
     const last=DB.cardio.slice().reverse().find(c=>c.name===id);
     if(last) document.getElementById('cardioMin').value=last.min;
   }});
-  document.getElementById('cardioDayList').innerHTML=cardioDayHtml(curDay(),true);
+  document.getElementById('cardioDayList').innerHTML=cardioDayHtml(curDay(),true)||`<div class="empty">No cardio ${dayWord()} — log it with +</div>`;
   const byDate={};
   DB.cardio.forEach(c=>{ byDate[c.date]=(byDate[c.date]||0)+c.min; });
   const all=Object.keys(byDate).sort().map(d=>({date:d,v:round1(byDate[d])}));
@@ -1988,10 +2231,11 @@ function renderCardio(){
 }
 function logCardio(){
   const name=comboCardio.text, min=+document.getElementById('cardioMin').value;
+  ensureForms();
   if(!name||!min){ toast('Enter activity and minutes'); return; }
   DB.cardio.push({id:uid(),date:curDay(),time:nowHM(),name,min});
   save(); comboCardio.clear(); document.getElementById('cardioMin').value='';
-  renderCardio(); toast(loggedMsg());
+  closeModal(); renderCurrent(); toast(loggedMsg());
 }
 function delCardio(id){ DB.cardio=DB.cardio.filter(c=>c.id!==id); save(); renderCardio(); }
 /* the set to beat next: same set number from last session */
@@ -2002,9 +2246,9 @@ function prefillNext(exId){
   document.getElementById('liftWeight').value=W(t.weight);
   document.getElementById('liftReps').value=t.reps;
 }
-function onLiftPicked(exId){ prefillNext(exId); syncRpeToggle(); renderLogLiftChart(); }
+function onLiftPicked(exId){ prefillNext(exId); syncRpeToggle(); renderLogHint(); }
 function renderLogLiftChart(){
-  const exId=comboLift?comboLift.value:null;
+  const exId=comboLook?comboLook.value:null;
   const panel=document.getElementById('logLiftPanel'), wrap=document.getElementById('logLiftChart');
   if(!exId){ panel.hidden=true; return; }
   panel.hidden=false;
@@ -2058,12 +2302,12 @@ function toggleRpe(){
 function renderExLibrary(){
   const q=(document.getElementById('exFilter').value||'').toLowerCase();
   const list=DB.exercises.filter(e=>e.name.toLowerCase().includes(q)||(e.cat||'').toLowerCase().includes(q));
-  document.getElementById('exLibraryList').innerHTML=list.length?list.map(e=>{
+  document.getElementById('exLibraryList').innerHTML=list.length?seeMore(q?'exq':'ex',list.map(e=>{
     const st=exStats(e.id);
     return `<div class="listrow" data-lp="${e.id}"><div><div class="r-title">${esc(e.name)}</div>
       <div class="r-sub">${e.cat||'Other'}${(DB.rpeExercises||[]).includes(e.id)?' · <span style="color:var(--blue)">RPE</span>':''}${st?` · ${st.count} sets · last ${st.last.date}`:' · no sets yet'}</div></div>
       <div class="r-val">${st?`${W(st.best.weight)}×${st.best.reps}`:'—'}<button class="del" onclick="delExercise('${e.id}')">×</button></div></div>`;
-  }).join(''):'<div class="empty">No exercises yet</div>';
+  }),q?50:10,'renderExLibrary()'):'<div class="empty">No exercises yet</div>';
 }
 function editExercise(id){
   const e=DB.exercises.find(x=>x.id===id); if(!e) return;
@@ -2110,8 +2354,9 @@ function logSet(){
   DB.sets.push({id:uid(),date:curDay(),time:nowHM(),exId,weight,reps,rpe:rpeOn&&rpeRaw>=5&&rpeRaw<=10?rpeRaw:null});
   save(); document.getElementById('liftRpe').value='';
   const pr=st&&weight>st.best.weight;
-  prefillNext(exId); renderLifts();
+  prefillNext(exId); renderLogHint(); renderCurrent();
   toast(pr?'Set logged — new PR':(isToday()?'Set logged':'Set logged to '+dayLabel()));
+  if(pr&&isPro()) confetti(40);
 }
 function delSet(id){ DB.sets=DB.sets.filter(s=>s.id!==id); save(); renderLifts(); }
 function setChartMetric(m){ chartMetric=m; renderLogLiftChart(); }
@@ -2124,14 +2369,14 @@ function logBodyweight(){
   DB.bodyweight=DB.bodyweight.filter(b=>b.date!==curDay());
   DB.bodyweight.push({id:uid(),date:curDay(),weight:w}); save();
   document.getElementById('bwInput').value='';
-  renderBodyweight(); toast(isToday()?'Bodyweight logged':'Logged to '+dayLabel());
+  closeModal(); renderCurrent(); toast(isToday()?'Bodyweight logged':'Logged to '+dayLabel());
 }
 function delBwEntry(id){ DB.bodyweight=DB.bodyweight.filter(b=>b.id!==id); save(); renderBodyweight(); }
 function renderBodyweight(){
   const rows=DB.bodyweight.slice().sort((a,b)=>a.date.localeCompare(b.date));
   const wrap=document.getElementById('bwChartWrap'), stat=document.getElementById('bwStat');
   if(!wrap) return;
-  if(rows.length===0){ wrap.innerHTML=''; stat.innerHTML='No bodyweight logged yet '+bwGoalBtn();
+  if(rows.length===0){ wrap.innerHTML=''; stat.innerHTML=`<div class="stat-head"><span class="muted" style="font-size:13px;">No bodyweight logged yet — add it with +</span>${bwGoalBtn()}</div>`;
     document.getElementById('bwList').innerHTML='<div class="empty">No entries</div>'; return; }
   const all=rows.map(r=>({date:r.date,v:W(r.weight)}));
   const latest=rows[rows.length-1], avg=a=>W(a.reduce((s,r)=>s+r.weight,0)/a.length);
@@ -2139,18 +2384,20 @@ function renderBodyweight(){
   let trend='';
   if(prev7.length>=2){ const d=avg(last7)-avg(prev7); trend=` · 7d avg ${avg(last7).toFixed(1)} (${d>=0?'+':''}${d.toFixed(1)} vs prior wk)`; }
   else if(last7.length>=2) trend=` · 7d avg ${avg(last7).toFixed(1)}`;
-  stat.innerHTML=`Latest ${W(latest.weight)} ${unit()} on ${latest.date}${trend}${bwGoalText(latest.weight)} ${bwGoalBtn()}`;
+  stat.innerHTML=`<div class="stat-head"><div class="big">${W(latest.weight)} <small>${unit()}</small></div>${bwGoalBtn()}</div>
+    <div class="stat-sub">${dayLabel(latest.date)}${trend}${bwGoalText(latest.weight)}</div>`;
   const st=chartState.bw, inRange=all.filter(p=>p.date>=rangeCutoff(st.range));
   wrap.innerHTML=ctrlBar('bw')+svgChart([{points:inRange,color:cssVar('--accent','#D9A441'),type:'line'}],{refs:(st.refs?hiLoRefs(inRange):[]).concat(goalRef(DB.goals.bw)),unit:unit()});
-  document.getElementById('bwList').innerHTML=rows.slice().reverse().slice(0,15).map(r=>`
-    <div class="listrow"><span>${r.date}</span><div class="r-val">${W(r.weight)} ${unit()}<button class="del" onclick="delBwEntry('${r.id}')">×</button></div></div>`).join('');
+  document.getElementById('bwList').innerHTML=seeMore('bw',rows.slice().reverse().map(r=>`
+    <div class="listrow"><span>${dayLabel(r.date)}</span><div class="r-val">${W(r.weight)} ${unit()}<button class="del" onclick="delBwEntry('${r.id}')">×</button></div></div>`),10);
 }
 function logBp(){
   const sys=+document.getElementById('bpSys').value, dia=+document.getElementById('bpDia').value, pulse=+document.getElementById('bpPulse').value||null;
   if(!sys||!dia){ toast('Enter systolic and diastolic'); return; }
   DB.bp.push({id:uid(),date:curDay(),time:nowHM(),sys,dia,pulse}); save();
   ['bpSys','bpDia','bpPulse'].forEach(i=>document.getElementById(i).value='');
-  renderBp(); toast(isToday()?'Reading logged':'Logged to '+dayLabel());
+  ['bpSys','bpDia','bpPulse'].forEach(i=>document.getElementById(i).value='');
+  closeModal(); renderCurrent(); toast(isToday()?'Reading logged':'Logged to '+dayLabel());
 }
 function delBp(id){ DB.bp=DB.bp.filter(b=>b.id!==id); save(); renderBp(); }
 function renderBp(){
@@ -2158,7 +2405,7 @@ function renderBp(){
   if(!wrap) return;
   const rows=DB.bp.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   if(rows.length===0){
-    stat.textContent='No readings yet'; wrap.innerHTML='';
+    stat.textContent='No readings yet — add one with +'; wrap.innerHTML='';
     document.getElementById('bpList').innerHTML='<div class="empty">No readings</div>'; return;
   }
   // one point per day = mean of that day's readings
@@ -2170,45 +2417,46 @@ function renderBp(){
   const last=rows[rows.length-1];
   const recent=rows.slice(-7);
   const avgS=Math.round(recent.reduce((a,r)=>a+r.sys,0)/recent.length), avgD=Math.round(recent.reduce((a,r)=>a+r.dia,0)/recent.length);
-  stat.textContent=`Latest ${last.sys}/${last.dia}${last.pulse?' · '+last.pulse+' bpm':''} on ${last.date} · last ${recent.length} avg ${avgS}/${avgD}`;
+  stat.innerHTML=`<div class="big">${last.sys}/${last.dia}${last.pulse?` <small style="font-size:13px; color:var(--muted); font-weight:400;">${last.pulse} bpm</small>`:''}</div>
+    <div class="stat-sub" style="margin-bottom:0;">${dayLabel(last.date)} · last ${recent.length} avg ${avgS}/${avgD}</div>`;
   const st=chartState.bp, cut=rangeCutoff(st.range);
   wrap.innerHTML=ctrlBar('bp')+svgChart([
     {points:sysAll.filter(p=>p.date>=cut),color:cssVar('--accent2','#C1554A'),type:'line'},
     {points:diaAll.filter(p=>p.date>=cut),color:cssVar('--blue','#6FA3DC'),type:'line'}
   ],{refs:st.refs?[{v:120,label:'120',color:'var(--muted)'},{v:80,label:'80',color:'var(--muted)'}]:[]})
   + `<div class="muted" style="font-size:11.5px; margin-top:4px;"><span style="color:var(--accent2)">■</span> systolic &nbsp; <span style="color:var(--blue)">■</span> diastolic${st.refs?' · reference 120/80':''}</div>`;
-  document.getElementById('bpList').innerHTML=rows.slice().reverse().slice(0,15).map(r=>`
-    <div class="listrow"><div><div class="r-title">${r.sys}/${r.dia}</div><div class="r-sub">${r.date} ${r.time}${r.pulse?' · '+r.pulse+' bpm':''}</div></div>
-    <button class="del" onclick="delBp('${r.id}')">×</button></div>`).join('');
+  document.getElementById('bpList').innerHTML=seeMore('bp',rows.slice().reverse().map(r=>`
+    <div class="listrow"><div><div class="r-title num">${r.sys}/${r.dia}</div><div class="r-sub">${dayLabel(r.date)} ${r.time}${r.pulse?' · '+r.pulse+' bpm':''}</div></div>
+    <button class="del" onclick="delBp('${r.id}')">×</button></div>`),5);
 }
 function logSleep(){
   const bed=document.getElementById('sleepBed').value, wake=document.getElementById('sleepWake').value;
   if(!bed||!wake){ toast('Enter both times'); return; }
-  const [bh,bm]=bed.split(':').map(Number), [wh,wm]=wake.split(':').map(Number);
-  let bedMin=bh*60+bm, wakeMin=wh*60+wm;
-  if(wakeMin<=bedMin) wakeMin+=1440;
-  const hours=(wakeMin-bedMin)/60;
+  const hours=sleepHours(bed,wake), q=+document.getElementById('sleepQuality').value||3;
   DB.sleep=DB.sleep.filter(s=>s.date!==curDay());
-  DB.sleep.push({id:uid(),date:curDay(),bed,wake,hours:round1(hours),quality:+document.getElementById('sleepQuality').value||3});
-  save(); renderSleepChart(); renderSleepHistory(); toast('Sleep logged: '+hours.toFixed(1)+'h');
+  DB.sleep.push({id:uid(),date:curDay(),bed,wake,hours:round1(hours),quality:q});
+  save(); closeModal(); renderCurrent(); toast(`Sleep logged — ${hours.toFixed(1)}h, ${sqOf(q).l.toLowerCase()}`);
 }
-function delSleep(id){ DB.sleep=DB.sleep.filter(s=>s.id!==id); save(); renderSleepChart(); renderSleepHistory(); }
+function delSleep(id){ DB.sleep=DB.sleep.filter(s=>s.id!==id); save(); renderCurrent(); }
 function renderSleepChart(){
   const wrap=document.getElementById('sleepChartWrap'); if(!wrap) return;
-  const all=DB.sleep.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(s=>({date:s.date,v:s.hours}));
-  if(all.length===0){ wrap.innerHTML='<div class="empty">No sleep logged</div>'; return; }
-  const st=chartState.sleep;
-  const inRange=all.filter(p=>p.date>=rangeCutoff(st.range));
+  const rows=DB.sleep.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const all=rows.map(s=>({date:s.date,v:s.hours,c:sqOf(s.quality).c}));
+  if(all.length===0){ wrap.innerHTML='<div class="empty">No sleep logged — add it with +</div>'; return; }
+  const st=chartState.sleep, cut=rangeCutoff(st.range);
+  const inRange=all.filter(p=>p.date>=cut), rr=rows.filter(s=>s.date>=cut);
   const avg=inRange.length?inRange.reduce((a,p)=>a+p.v,0)/inRange.length:0;
+  const avgQ=rr.length?rr.reduce((a,s)=>a+(s.quality||3),0)/rr.length:0;
   wrap.innerHTML=ctrlBar('sleep')
-    + svgChart([{points:inRange,color:cssVar('--accent','#D9A441'),type:'bar'}],{refs:st.refs?refLines(all):[],yPad:0.05,unit:'h'})
-    + `<div class="flexrow muted" style="font-size:12px; margin-top:4px;"><span>Hours per night</span><span class="num">avg ${avg.toFixed(1)}h</span></div>`;
+    + svgChart([{points:inRange,color:cssVar('--accent','#D9A441'),type:'bar'}],{refs:st.refs?refLines(all):[],fixed:[0,Math.max(10,...inRange.map(p=>p.v))],unit:'h'})
+    + `<div class="flexrow" style="font-size:12px; margin-top:6px;"><span class="muted">avg <b class="num" style="color:var(--text)">${avg.toFixed(1)}h</b> · quality <b style="color:${sqOf(avgQ).c}">${sqOf(avgQ).l}</b></span>
+        <span>${SQ.map(q=>`<span class="qdot" style="background:${q.c}; margin:0 0 0 5px;" title="${q.l}"></span>`).join('')}</span></div>`;
 }
 function renderSleepHistory(){
   const hist=DB.sleep.slice().sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('sleepHistoryList').innerHTML=hist.length?hist.slice(0,20).map(s=>`
-    <div class="listrow"><div><div class="r-title">${s.date}</div><div class="r-sub">${s.bed}–${s.wake} · quality ${s.quality}/5</div></div>
-    <div class="r-val">${s.hours.toFixed(1)}h<button class="del" onclick="delSleep('${s.id}')">×</button></div></div>`).join('')
+  document.getElementById('sleepHistoryList').innerHTML=hist.length?seeMore('sleep',hist.map(s=>{ const q=sqOf(s.quality); return `
+    <div class="listrow"><div><div class="r-title">${dayLabel(s.date)}</div><div class="r-sub">${s.bed}–${s.wake}</div></div>
+    <div class="r-val"><span class="qpill" style="background:${q.c}">${q.l}</span> ${s.hours.toFixed(1)}h<button class="del" onclick="delSleep('${s.id}')">×</button></div></div>`; }),10)
     :'<div class="empty">No sleep logged</div>';
 }
 
@@ -2334,11 +2582,11 @@ function renderMeds(){
   const combined=[
     ...DB.medLog.map(l=>({id:l.id,src:'log',date:l.date+' '+l.time,name:l.name,amount:l.dose,unit:l.unit,category:l.category})),
     ...DB.doses.map(d=>({id:d.id,src:'dose',date:d.date,name:d.name,amount:d.amount,unit:d.unit,category:d.category}))
-  ].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
-  document.getElementById('doseHistoryList').innerHTML=combined.length?combined.map(d=>`
+  ].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('doseHistoryList').innerHTML=combined.length?seeMore('doses',combined.map(d=>`
     <div class="listrow"><div><div class="r-title">${esc(d.name)} <span class="tag ${(d.category||'medication').toLowerCase()}">${d.category||'—'}</span></div>
       <div class="r-sub">${d.date}${d.src==='dose'?' · unscheduled':''}</div></div>
-    <div class="r-val">${d.amount||''}${esc(d.unit||'')}<button class="del" onclick="delHistory('${d.src}','${d.id}')">×</button></div></div>`).join('')
+    <div class="r-val">${d.amount||''}${esc(d.unit||'')}<button class="del" onclick="delHistory('${d.src}','${d.id}')">×</button></div></div>`),10)
     :'<div class="empty">No doses logged</div>';
 }
 function doseItems(){
@@ -2416,7 +2664,7 @@ function logDose(){
 /* ============ settings ============ */
 let comboSquat,comboBench,comboDead;
 function renderSettings(){
-  renderColors(); renderSync();
+  renderProCard(); renderColors(); renderSync();
   if(!comboSquat){
     comboSquat=new Combo('comboSquat',{placeholder:'Pick squat variation',getItems:exItems});
     comboBench=new Combo('comboBench',{placeholder:'Pick bench variation',getItems:exItems});
@@ -2499,6 +2747,7 @@ function checkReminders(){
 setInterval(checkReminders,20000);
 
 load();
+if(!PRO_ENABLED){ document.getElementById('proTitle').remove(); document.getElementById('proCard').remove(); }
 applyTheme();
 initCollapsibles();
 showView('dash');
