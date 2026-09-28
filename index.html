@@ -295,6 +295,20 @@
   .sw.on{border-color:var(--text); box-shadow:0 0 0 2px var(--panel) inset;}
   .sw-custom{position:relative; overflow:hidden; background:conic-gradient(#e05252,#e0c052,#52e07a,#52b8e0,#8a52e0,#e052b0,#e05252);}
   .sw-custom input{position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; padding:0; border:none;}
+  .linkbtn{background:none; border:none; padding:0; color:var(--muted); font-family:var(--mono); font-size:11.5px; text-decoration:underline dotted; text-underline-offset:2px;}
+  .share-cats{display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:12px;}
+  .share-cats .refbox{font-size:13px; color:var(--text);}
+  .share-link{font-family:var(--mono); font-size:12px;}
+  /* read-only live view opened from a share link */
+  .vhide{display:none !important;}
+  body.viewer nav.tabs button.plus, body.viewer nav.tabs button[data-view="settings"], body.viewer .del,
+  body.viewer #startSessionBtn, body.viewer #sessionBar{display:none !important;}
+  body.viewer :is(#dashMeds,#medTodayList,#medPresets) button{pointer-events:none;}
+  body.viewer [onclick^="goalModal"]{display:none !important;}
+  body.viewer [onclick^="editBpRef"]{pointer-events:none; text-decoration:none;}
+  .viewer-bar{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12px; color:var(--muted);
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; margin-bottom:10px;}
+  .viewer-bar .dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--good); margin-right:6px; vertical-align:1px;}
 </style>
 </head>
 <body>
@@ -311,27 +325,27 @@
 
     <!-- TODAY -->
     <section class="view active" id="view-dash">
-      <h2 class="section-title">Squat / bench / deadlift</h2>
+      <h2 class="section-title" data-share="exercise">Squat / bench / deadlift</h2>
       <div class="card" id="sbdCard"></div>
-      <h2 class="section-title">Macros</h2>
+      <h2 class="section-title" data-share="food">Macros</h2>
       <div class="card" id="macroCard"></div>
       <div class="card" id="suggestCard"></div>
-      <h2 class="section-title">Bodyweight</h2>
+      <h2 class="section-title" data-share="health">Bodyweight</h2>
       <div class="card" id="dashBw"></div>
-      <h2 class="section-title">Meds</h2>
+      <h2 class="section-title" data-share="meds">Meds</h2>
       <div class="card" id="dashMeds"></div>
-      <h2 class="section-title">Lifts</h2>
+      <h2 class="section-title" data-share="exercise">Lifts</h2>
       <div class="card" id="dashLifts"></div>
-      <h2 class="section-title">Sleep</h2>
+      <h2 class="section-title" data-share="health">Sleep</h2>
       <div class="card" id="dashSleep"></div>
     </section>
 
     <!-- FOOD -->
     <section class="view" id="view-food">
-      <h2 class="section-title" id="foodDayTitle">Eaten today</h2>
+      <h2 class="section-title" data-share="food" id="foodDayTitle">Eaten today</h2>
       <div class="card" id="todayMealsList"></div>
 
-      <h2 class="section-title">Food library</h2>
+      <h2 class="section-title" data-share="edit">Food library</h2>
       <div class="card">
         <label>Name</label><input id="fName" placeholder="e.g. Chicken breast, 200g">
         <div class="row">
@@ -352,19 +366,19 @@
     <section class="view" id="view-lifts">
       <button class="btn block sx-main" id="startSessionBtn" onclick="openSessionMenu()" style="margin-bottom:6px;">Start session</button>
 
-      <h2 class="section-title">Lift history</h2>
+      <h2 class="section-title" data-share="exercise">Lift history</h2>
       <div class="card">
         <div class="combo" id="comboLook"></div>
         <div id="logLiftPanel" hidden><div id="logLiftChart" style="margin-top:10px;"></div></div>
       </div>
 
-      <h2 class="section-title" id="liftDayTitle">Sets today</h2>
+      <h2 class="section-title" data-share="exercise" id="liftDayTitle">Sets today</h2>
       <div class="card" id="liftHistoryList"></div>
 
-      <h2 class="section-title">Workout plans</h2>
+      <h2 class="section-title" data-share="exercise">Workout plans</h2>
       <div class="card" id="planList"></div>
 
-      <h2 class="section-title">Lift library</h2>
+      <h2 class="section-title" data-share="edit">Lift library</h2>
       <div class="card">
         <label>New exercise</label>
         <input id="newExName" placeholder="e.g. Bench press">
@@ -385,7 +399,7 @@
         <div id="exLibraryList"></div>
       </div>
 
-      <h2 class="section-title">Cardio</h2>
+      <h2 class="section-title" data-share="exercise">Cardio</h2>
       <div class="card" id="cardioDayList"></div>
       <div class="card" id="cardioChartWrap"></div>
 
@@ -393,7 +407,7 @@
 
     <!-- MEDS -->
     <section class="view" id="view-meds">
-      <h2 class="section-title">Quick log</h2>
+      <h2 class="section-title" data-share="edit">Quick log</h2>
       <div class="card">
         <div id="medPresets"></div>
         <label>Substance — type to search or enter new</label>
@@ -411,10 +425,10 @@
         </div>
       </div>
 
-      <h2 class="section-title" id="medDayTitle">Scheduled today</h2>
+      <h2 class="section-title" data-share="meds" id="medDayTitle">Scheduled today</h2>
       <div class="card" id="medTodayList"></div>
 
-      <h2 class="section-title">Add to schedule</h2>
+      <h2 class="section-title" data-share="edit">Add to schedule</h2>
       <div class="card">
         <label>Category</label>
         <div id="medCatChips">
@@ -456,34 +470,34 @@
         <button class="btn secondary block" id="medCancelEdit" onclick="cancelMedEdit()" hidden style="margin-top:8px;">Cancel edit</button>
       </div>
 
-      <h2 class="section-title">Schedule</h2>
+      <h2 class="section-title" data-share="meds">Schedule</h2>
       <div class="card" id="medScheduleList"></div>
 
-      <h2 class="section-title">Dose history</h2>
+      <h2 class="section-title" data-share="meds">Dose history</h2>
       <div class="card" id="doseHistoryList"></div>
     </section>
 
     <!-- BODY -->
     <section class="view" id="view-body">
-      <h2 class="section-title">Bodyweight</h2>
+      <h2 class="section-title" data-share="health">Bodyweight</h2>
       <div class="card">
         <div id="bwStat"></div>
         <div id="bwChartWrap"></div>
       </div>
       <div class="card" id="bwList"></div>
 
-      <h2 class="section-title">Blood pressure</h2>
+      <h2 class="section-title" data-share="health">Blood pressure</h2>
       <div class="card">
         <div id="bpStat" style="margin-bottom:10px;"></div>
         <div id="bpChartWrap"></div>
       </div>
       <div class="card" id="bpList"></div>
 
-      <h2 class="section-title">Sleep</h2>
+      <h2 class="section-title" data-share="health">Sleep</h2>
       <div class="card"><div id="sleepChartWrap"></div></div>
       <div class="card" id="sleepHistoryList"></div>
 
-      <h2 class="section-title">Add bloodwork</h2>
+      <h2 class="section-title" data-share="edit">Add bloodwork</h2>
       <div class="card">
         <label>Paste results — one per line or all in a row</label>
         <textarea id="labPaste" rows="5" autocapitalize="off" spellcheck="false" oninput="renderLabPreview()"
@@ -496,7 +510,7 @@
         <button class="btn secondary block" onclick="openLab()">+ Add a lab by hand</button>
       </div>
 
-      <h2 class="section-title">Bloodwork</h2>
+      <h2 class="section-title" data-share="bloodwork">Bloodwork</h2>
       <div id="labsWrap"></div>
       <div class="hint" style="margin:0 2px 10px;">Not medical advice — ranges come from your lab. Talk to your doctor about anything flagged.</div>
     </section>
@@ -548,6 +562,9 @@
 
       <h2 class="section-title">Sync across devices</h2>
       <div class="card" id="syncCard"></div>
+
+      <h2 class="section-title">Share a live view</h2>
+      <div class="card" id="shareCard"></div>
 
       <h2 class="section-title">Colors</h2>
       <div class="card">
@@ -646,6 +663,7 @@
       <div><label>Diastolic</label><input type="number" id="bpDia" inputmode="numeric" placeholder="78"></div>
       <div><label>Pulse</label><input type="number" id="bpPulse" inputmode="numeric" placeholder="60"></div>
     </div>
+    <label>Time</label><input type="time" id="bpTime">
     <button class="btn block" onclick="logBp()">Log reading</button>
   </div>
   <div class="qform" id="fSleep">
@@ -674,7 +692,7 @@ function defaultStore(){
     foods:[], meals:[], exercises:[], sets:[], sleep:[],
     bloodwork:[], doses:[], bodyweight:[], bp:[], rpeExercises:[],
     medSchedule:[], medLog:[], medPresets:[], cardio:[], theme:{accent:null,mode:'auto'}, unit:'lb', collapsed:{'view-food:Food library':true,'view-lifts:Lift library':true,'view-meds:Add to schedule':true},
-    goals:{bw:null,lifts:{}}, macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
+    goals:{bw:null,lifts:{}}, bpRef:{sys:120,dia:80}, share:null, macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
     sbd:{squat:null,bench:null,deadlift:null},
     targets:{carb:0,prot:0,fat:0},
     reminders:{mealTimes:[],sleepTime:'',bwDay:null},
@@ -682,7 +700,10 @@ function defaultStore(){
   };
 }
 let DB;
+/* opened from someone's share link (#view=owner/repo/id.key) → read-only live view of their data */
+const VIEWER=(()=>{ const m=location.hash.match(/^#view=([\w.-]+\/[\w.-]+)\/(\w+)\.([\w-]+)$/); return m?{repo:m[1],id:m[2],key:m[3],cats:[],name:''}:null; })();
 function load(){
+  if(VIEWER){ DB=defaultStore(); DB._seeded=true; DB._labsMigrated=true; stamp(true); return; }
   try{ const raw=localStorage.getItem(STORE_KEY); DB=raw?JSON.parse(raw):defaultStore(); }
   catch(e){ DB=defaultStore(); }
   const d=defaultStore();
@@ -740,9 +761,11 @@ function stamp(baseline){
   SNAP=snap; return changed;
 }
 function save(){
+  if(VIEWER) return;   // a viewer never writes anything
   const changed=stamp(false);
   try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){ toast('Storage unavailable'); }
   if(changed&&SYNC){ SYNC.dirty=true; saveSyncCfg(); scheduleSync(); }
+  if(changed&&DB.share) scheduleShare();
 }
 function uid(){ return Math.random().toString(36).slice(2,10); }
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -848,7 +871,8 @@ function renderCurrent(){
   ({dash:renderDash,food:renderFood,lifts:renderLifts,meds:renderMeds,body:renderBody,settings:renderSettings}[currentView])();
 }
 function renderHeader(){
-  const tt=document.getElementById('appTitle'); if(tt) tt.innerHTML='Bloobledoop'+(isPro()?'<span class="pro-badge">✦</span>':'');
+  const tt=document.getElementById('appTitle');
+  if(tt) tt.innerHTML=VIEWER?(VIEWER.name?esc(VIEWER.name)+'’s data':'Shared data'):'Bloobledoop'+(isPro()?'<span class="pro-badge">✦</span>':'');
   document.getElementById('todayLabel').textContent=dayLabel();
   document.getElementById('datePick').classList.toggle('past',!isToday());
   document.getElementById('backToday').hidden=isToday();
@@ -859,7 +883,7 @@ function renderHeader(){
 function setDay(d){
   VIEW_DATE=(d&&d<todayStr())?d:null;
   renderCurrent();
-  if(!isToday()) toast('Now logging to '+dayLabel());
+  if(!isToday()) toast((VIEWER?'Now viewing ':'Now logging to ')+dayLabel());
 }
 function toggleUnit(){
   DB.unit=DB.unit==='kg'?'lb':'kg'; save();
@@ -983,7 +1007,7 @@ function attachLongPress(container, handler){
 
 /* ============ chart engine ============ */
 const RANGES=['D','W','M','Y','All'];
-const chartState={lift:{range:'M',refs:false}, bw:{range:'M',refs:false}, bp:{range:'M',refs:false}, sleep:{range:'M',refs:false}, cardio:{range:'M',refs:false}};
+const chartState={lift:{range:'M',refs:false}, bw:{range:'M',refs:false}, bp:{range:'M',refs:false,agg:'avg'}, sleep:{range:'M',refs:false}, cardio:{range:'M',refs:false}};
 function rangeCutoff(range){
   const d=new Date();
   if(range==='D') return todayStr();
@@ -1393,7 +1417,7 @@ function renderLifts(){
 }
 /* ============ GitHub sync ============ */
 const SYNC_KEY='physio_sync', SYNC_PATH='bloobledoop-data.json';
-let SYNC=null; try{ SYNC=JSON.parse(localStorage.getItem(SYNC_KEY)||'null'); }catch(e){}
+let SYNC=null; try{ if(!VIEWER) SYNC=JSON.parse(localStorage.getItem(SYNC_KEY)||'null'); }catch(e){}
 let syncBusy=false, syncAgain=false, syncTimer=null, syncErr='';
 function saveSyncCfg(){ try{ if(SYNC) localStorage.setItem(SYNC_KEY,JSON.stringify(SYNC)); else localStorage.removeItem(SYNC_KEY); }catch(e){} }
 function scheduleSync(){ clearTimeout(syncTimer); syncTimer=setTimeout(syncNow,2500); }
@@ -1495,7 +1519,7 @@ function renderSync(){
     el.innerHTML=`<div class="flexrow" style="margin-bottom:8px;"><span>Connected to <b>${esc(SYNC.repo)}</b></span></div>
       <div class="muted" style="font-size:12.5px; margin-bottom:12px;" id="syncStatus"></div>
       <div class="row"><button class="btn secondary" onclick="disconnectSync()">Disconnect</button><button class="btn" onclick="syncNow(true)">Sync now</button></div>`;
-    renderSyncStatus(); return;
+    renderSyncStatus(); renderShare(); return;
   }
   el.innerHTML=`<div class="hint" style="margin-bottom:10px; line-height:1.5;">
       1. On GitHub, create a new <b>private</b> repo, e.g. <span class="num">bloobledoop-data</span>.<br>
@@ -1505,8 +1529,9 @@ function renderSync(){
     <label>Token</label><input id="syncToken" type="password" placeholder="github_pat_…" autocomplete="off">
     <button class="btn block" onclick="connectSync()">Connect</button>`;
 }
+function normRepo(v){ return String(v||'').trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/+$/,''); }
 async function connectSync(){
-  let repo=document.getElementById('syncRepo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/+$/,'');
+  let repo=normRepo(document.getElementById('syncRepo').value);
   const token=document.getElementById('syncToken').value.trim();
   if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!token){ toast('Enter owner/repo and a token'); return; }
   SYNC={repo,token};
@@ -1526,6 +1551,214 @@ function disconnectSync(){
 }
 document.addEventListener('visibilitychange',()=>{ if(!SYNC) return; if(document.visibilityState==='visible') syncNow(); else if(SYNC.dirty) syncNow(); });
 window.addEventListener('online',()=>{ if(SYNC) syncNow(); });
+
+/* ============ live share link ============
+   The owner's device encrypts just the chosen sections (AES-GCM, key made on this device) and
+   uploads them to a PUBLIC GitHub repo whenever something changes. The link carries the repo,
+   file id and key in the #fragment, which browsers never send to any server — so the repo only
+   ever holds ciphertext and only people with the link can read it. */
+const SHARE_DIR='shared';
+const SHARE_CATS=[['exercise','Exercise'],['food','Food'],['meds','Meds'],['bloodwork','Bloodwork'],['health','Health — weight, BP, sleep']];
+const SHARE_KEYS={exercise:['exercises','sets','cardio','plans','rpeExercises','sbd'],food:['foods','meals','targets'],
+  meds:['medSchedule','medLog','medPresets','doses'],bloodwork:['labs','labResults'],health:['bodyweight','bp','bpRef','sleep']};
+const SHARE_HASH_KEY='physio_share_hash';
+let shareTimer=null, shareBusy=false, shareAgain=false, shareSha=null, shareErr='', shareLast=null;
+function bytesB64(b){ let s=''; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); }
+function b64Bytes(s){ return Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)); }
+function randKey(n){ return bytesB64(crypto.getRandomValues(new Uint8Array(n))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+const shareCryptoKey=(k,use)=>crypto.subtle.importKey('raw',b64Bytes(k),'AES-GCM',false,[use]);
+async function encryptShare(text,k){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},await shareCryptoKey(k,'encrypt'),new TextEncoder().encode(text));
+  return {v:1,iv:bytesB64(iv),ct:bytesB64(new Uint8Array(ct))};
+}
+async function decryptShare(f,k){
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64Bytes(f.iv)},await shareCryptoKey(k,'decrypt'),b64Bytes(f.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function shareUrl(sh){ return location.origin+location.pathname+'#view='+sh.repo+'/'+sh.id+'.'+sh.key; }
+function sharePath(sh){ return `/repos/${sh.repo}/contents/${SHARE_DIR}/${sh.id}.json`; }
+function sharePayload(sh){
+  const on=c=>sh.cats.includes(c), strip=v=>Array.isArray(v)?v.map(it=>{ if(it&&typeof it==='object'){ const {_t,...r}=it; return r; } return it; }):v;
+  const data={unit:DB.unit,goals:{bw:on('health')?(DB.goals||{}).bw:null,lifts:on('exercise')?(DB.goals||{}).lifts||{}:{}}};
+  sh.cats.forEach(c=>(SHARE_KEYS[c]||[]).forEach(k=>{ if(DB[k]!==undefined) data[k]=strip(DB[k]); }));
+  return {v:1,name:sh.name||'',cats:sh.cats,data};
+}
+function scheduleShare(ms){
+  if(VIEWER||!DB.share||!SYNC||!SYNC.token) return;
+  clearTimeout(shareTimer); shareTimer=setTimeout(publishShare,ms==null?4000:ms);
+}
+async function publishShare(force){
+  const sh=DB.share; if(VIEWER||!sh||!SYNC||!SYNC.token) return;
+  if(shareBusy){ shareAgain=true; return; }
+  shareBusy=true;
+  try{
+    const plain=JSON.stringify(sharePayload(sh));
+    const dg=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(sh.id+plain)));
+    const hash=bytesB64(dg);
+    let prev=null; try{ prev=localStorage.getItem(SHARE_HASH_KEY); }catch(e){}
+    if(!force&&hash===prev){ shareErr=''; return; }   // nothing new since the last upload
+    const body=b64enc(JSON.stringify(await encryptShare(plain,sh.key)));
+    for(let attempt=0;attempt<3;attempt++){
+      if(!shareSha){
+        const g=await ghFetch(sharePath(sh));
+        if(g.ok) shareSha=(await g.json()).sha; else if(g.status!==404) throw new Error(ghErr(g.status));
+      }
+      const r=await ghFetch(sharePath(sh),{method:'PUT',body:{message:'Update shared view',content:body,...(shareSha?{sha:shareSha}:{})}});
+      if(r.status===409||r.status===422){ shareSha=null; continue; }
+      if(!r.ok) throw new Error(ghErr(r.status));
+      shareSha=(await r.json()).content.sha; shareLast=Date.now(); shareErr='';
+      try{ localStorage.setItem(SHARE_HASH_KEY,hash); }catch(e){}
+      break;
+    }
+  }catch(e){ shareErr=e.message||'Offline'; }
+  finally{
+    shareBusy=false; renderShareStatus();
+    if(shareAgain){ shareAgain=false; scheduleShare(); }
+  }
+}
+async function deleteShareFile(sh){
+  try{
+    const g=await ghFetch(sharePath(sh)); if(!g.ok) return;
+    await ghFetch(sharePath(sh),{method:'DELETE',body:{message:'Stop sharing',sha:(await g.json()).sha}});
+  }catch(e){}
+  shareSha=null; try{ localStorage.removeItem(SHARE_HASH_KEY); }catch(e){}
+}
+function renderShareStatus(){
+  const el=document.getElementById('shareStatus'); if(!el) return;
+  el.innerHTML=shareErr?`<span style="color:var(--accent2)">${esc(shareErr)}</span>`
+    :shareBusy?'Updating…':shareLast?'Live — updated '+new Date(shareLast).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})
+    :'Live — updates a few seconds after you log something';
+}
+function shareCatBoxes(cats,onchange){
+  return `<div class="share-cats">${SHARE_CATS.map(([k,l])=>`<label class="refbox"><input type="checkbox" data-cat="${k}" ${cats.includes(k)?'checked':''}${onchange?` onchange="${onchange}"`:''}>${l}</label>`).join('')}</div>`;
+}
+function renderShare(){
+  const el=document.getElementById('shareCard'); if(!el) return;
+  if(!SYNC){ el.innerHTML='<div class="hint" style="margin:0;">Connect <b>Sync across devices</b> above first — the share link is published with the same GitHub token.</div>'; return; }
+  const sh=DB.share;
+  if(sh){
+    el.innerHTML=`<label>Anyone with this link can see the sections ticked below, live</label>
+      <input class="share-link" id="shareLinkIn" readonly value="${esc(shareUrl(sh))}" onclick="this.select()">
+      <div class="row" style="margin-bottom:12px;"><button class="btn secondary" onclick="copyShareLink()">Copy link</button>${navigator.share?'<button class="btn" onclick="sendShareLink()">Send…</button>':''}</div>
+      <label>What they can see</label>
+      ${shareCatBoxes(sh.cats,'setShareCats()')}
+      <div class="muted" style="font-size:12.5px; margin-bottom:12px;" id="shareStatus"></div>
+      <div class="row"><button class="btn secondary" onclick="rotateShare()">New link</button><button class="btn danger" onclick="stopShare()">Stop sharing</button></div>
+      <div class="hint" style="margin:10px 0 0;">“New link” turns the old one off. Old encrypted copies stay in the repo’s history, so someone who kept an old link could still dig up what they already had access to — delete the repo to wipe it completely.</div>`;
+    renderShareStatus(); return;
+  }
+  el.innerHTML=`<div class="hint" style="margin-bottom:10px; line-height:1.5;">
+      Make a link that shows someone (a coach, doctor, partner) your data, read-only, updating as you log.<br>
+      1. On GitHub, create a second repo that is <b>public</b>, e.g. <span class="num">bloobledoop-share</span>. Everything in it is encrypted on this phone first, so the repo itself is unreadable.<br>
+      2. Edit your sync token → Repository access → add that repo too (Contents: Read and write).</div>
+    <label>Public share repo (owner/name or URL)</label><input id="shareRepo" placeholder="yourname/bloobledoop-share" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <label>Your name, shown to them (optional)</label><input id="shareName" placeholder="e.g. Toby" autocomplete="off">
+    <label>What they can see</label>
+    ${shareCatBoxes(['health'])}
+    <button class="btn block" id="shareBtn" onclick="createShare()">Create link</button>`;
+}
+function checkedCats(){ return [...document.querySelectorAll('#shareCard [data-cat]')].filter(i=>i.checked).map(i=>i.dataset.cat); }
+async function createShare(){
+  const repo=normRepo(document.getElementById('shareRepo').value), cats=checkedCats(), name=document.getElementById('shareName').value.trim().slice(0,40);
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ toast('Enter the share repo as owner/name'); return; }
+  if(!cats.length){ toast('Tick at least one section to share'); return; }
+  if(!window.crypto||!crypto.subtle){ toast('Sharing needs the app opened over https'); return; }
+  const btn=document.getElementById('shareBtn'); btn.disabled=true; btn.textContent='Checking…';
+  try{
+    const r=await ghFetch('/repos/'+repo);
+    if(!r.ok) throw new Error(r.status===404?'Repo not found — add it to your token’s repository access':ghErr(r.status));
+    const j=await r.json();
+    if(j.private) throw new Error('That repo is private, so the people you share with couldn’t read it. Use a public one — your data is encrypted before upload.');
+    if(j.permissions&&!j.permissions.push) throw new Error('Your token can’t write to that repo — give it Contents: Read and write.');
+    DB.share={repo,id:randKey(9).replace(/[-_]/g,'x'),key:randKey(32),cats,name};
+    shareSha=null; try{ localStorage.removeItem(SHARE_HASH_KEY); }catch(e){}
+    save(); clearTimeout(shareTimer); renderShare();
+    await publishShare(true);
+    toast(shareErr?'Link made, but upload failed — '+shareErr:'Share link ready');
+  }catch(e){ toast(e.message||'Couldn’t reach GitHub'); }
+  finally{ if(document.getElementById('shareBtn')){ btn.disabled=false; btn.textContent='Create link'; } }
+}
+function setShareCats(){
+  const cats=checkedCats();
+  if(!cats.length){ toast('Tick at least one — or use Stop sharing'); renderShare(); return; }
+  DB.share=Object.assign({},DB.share,{cats}); save(); scheduleShare(500); renderShareStatus();
+}
+function copyShareLink(){
+  const v=shareUrl(DB.share);
+  (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast('Link copied'),()=>{ const i=document.getElementById('shareLinkIn'); i.select(); document.execCommand('copy'); toast('Link copied'); });
+}
+function sendShareLink(){ navigator.share({title:'My Bloobledoop data',url:shareUrl(DB.share)}).catch(()=>{}); }
+function rotateShare(){
+  askConfirm('Make a new link? The current link stops working straight away.','New link',async()=>{
+    const old=DB.share; await deleteShareFile(old);
+    DB.share=Object.assign({},old,{id:randKey(9).replace(/[-_]/g,'x'),key:randKey(32)});
+    save(); clearTimeout(shareTimer); renderShare(); await publishShare(true); toast('New link ready — send it again');
+  });
+}
+function stopShare(){
+  askConfirm('Stop sharing? The link stops working straight away.','Stop sharing',async()=>{
+    const old=DB.share; DB.share=null; save(); renderShare(); await deleteShareFile(old); toast('Sharing stopped');
+  });
+}
+
+/* ---- viewer side ---- */
+let viewerLoaded=false, viewerAt=null, viewerErr='';
+async function fetchShared(){
+  const {repo,id}=VIEWER, p=`${SHARE_DIR}/${id}.json`, bust='?t='+Date.now();
+  let r=null;
+  try{ r=await fetch(`https://api.github.com/repos/${repo}/contents/${p}${bust}`,{cache:'no-store',headers:{Accept:'application/vnd.github.raw+json'}}); }catch(e){}
+  if(r&&r.status===404) throw new Error('This share link has been turned off.');
+  if(!r||!r.ok){   // e.g. GitHub's hourly limit for anonymous requests — fall back to the raw file
+    r=await fetch(`https://raw.githubusercontent.com/${repo}/HEAD/${p}${bust}`,{cache:'no-store'});
+    if(r.status===404) throw new Error('This share link has been turned off.');
+    if(!r.ok) throw new Error('Couldn’t load the shared data');
+  }
+  return decryptShare(await r.json(),VIEWER.key);
+}
+function applyViewerVisibility(){
+  const on=c=>VIEWER.cats.includes(c);
+  const tabs={food:on('food'),lifts:on('exercise'),meds:on('meds'),body:on('health')||on('bloodwork')};
+  document.querySelectorAll('nav.tabs button[data-view]').forEach(b=>{ if(b.dataset.view in tabs) b.classList.toggle('vhide',!tabs[b.dataset.view]); });
+  document.querySelectorAll('h2.section-title[data-share]').forEach(h=>{
+    const hide=h.dataset.share==='edit'||!on(h.dataset.share);
+    let n=h; do{ n.classList.toggle('vhide',hide); n=n.nextElementSibling; }while(n&&!n.matches('h2.section-title'));
+  });
+  if(currentView in tabs&&!tabs[currentView]) showView('dash');
+}
+function renderViewerBar(){
+  const el=document.getElementById('viewerBar'); if(!el) return;
+  el.innerHTML=viewerErr?`<span style="color:var(--accent2)">${esc(viewerErr)}</span><button class="linkbtn" onclick="refreshShared()">retry</button>`
+    :viewerLoaded?`<span><span class="dot"></span>Live, read-only · checked ${new Date(viewerAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</span><button class="linkbtn" onclick="refreshShared()">refresh</button>`
+    :'<span>Loading shared data…</span>';
+}
+async function refreshShared(){
+  try{
+    const p=await fetchShared(), unitNow=DB.unit;
+    const before=JSON.stringify(DB);
+    DB=Object.assign(defaultStore(),p.data||{},{_seeded:true,_labsMigrated:true});
+    if(viewerLoaded) DB.unit=unitNow;   // keep the viewer's own lb/kg choice
+    VIEWER.cats=p.cats||[]; VIEWER.name=p.name||'';
+    viewerErr=''; viewerAt=Date.now();
+    const changed=!viewerLoaded||JSON.stringify(DB)!==before;
+    viewerLoaded=true;
+    applyViewerVisibility();
+    if(changed&&!document.body.classList.contains('modal-open')) renderCurrent(); else renderHeader();
+  }catch(e){
+    viewerErr=e.name==='OperationError'?'This link is damaged — ask for a fresh one.':(e.message||'Offline');
+  }
+  renderViewerBar();
+}
+function initViewer(){
+  document.body.classList.add('viewer');
+  document.title='Shared data · Bloobledoop';
+  const bar=document.createElement('div'); bar.className='viewer-bar'; bar.id='viewerBar';
+  document.getElementById('main').prepend(bar);
+  VIEWER.cats=[]; applyViewerVisibility(); renderViewerBar();
+  refreshShared();
+  setInterval(()=>{ if(document.visibilityState==='visible') refreshShared(); },120000);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-(viewerAt||0)>30000) refreshShared(); });
+}
 
 /* ============ supporter / pro ============
    Fill these in after setting up Whop + the Cloudflare Worker (see SETUP-PAYMENTS.md). */
@@ -1834,9 +2067,17 @@ function delLabResult(rid,id){ DB.labResults=DB.labResults.filter(r=>r.id!==rid)
 (function(){
   const vv=window.visualViewport; if(!vv) return;
   let raf=0;
+  /* Only an actual text field counts as "keyboard open". iOS also shrinks the visual viewport for
+     screenshots, the date wheel and other overlays — without this check the app got stuck squashed
+     into the top of the screen with the tab bar hidden. */
+  const typing=()=>{
+    const a=document.activeElement; if(!a) return false;
+    if(a.tagName==='TEXTAREA'||a.isContentEditable) return true;
+    return a.tagName==='INPUT'&&!/^(checkbox|radio|range|button|submit|file|color|date|time|datetime-local|month|week|hidden)$/.test(a.type);
+  };
   const fit=()=>{
     raf=0;
-    const open=window.innerHeight-vv.height>120;
+    const open=typing()&&window.innerHeight-vv.height>120;
     document.body.classList.toggle('kb-open',open);
     [document.querySelector('.app'),document.getElementById('modal'),document.getElementById('sessionOv')].forEach(el=>{
       if(!el) return;
@@ -1846,6 +2087,10 @@ function delLabResult(rid,id){ DB.labResults=DB.labResults.filter(r=>r.id!==rid)
   };
   const queue=()=>{ if(!raf) raf=requestAnimationFrame(fit); };
   vv.addEventListener('resize',queue); vv.addEventListener('scroll',queue);
+  window.addEventListener('resize',queue); window.addEventListener('pageshow',queue);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') setTimeout(queue,300); });
+  // iOS sometimes skips the resize event when the keyboard closes — re-check once it's gone
+  document.addEventListener('focusout',()=>setTimeout(queue,350));
   document.addEventListener('focusin',e=>{
     const a=e.target; if(!a||!/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.type==='checkbox') return;
     setTimeout(()=>{ if(document.activeElement===a) a.scrollIntoView({block:'center',behavior:'smooth'}); },320);
@@ -1866,7 +2111,7 @@ const QA=[
   {k:'food',f:'fFood',t:'Log food',s:'From your library or quick macros'},
   {k:'cardio',f:'fCardio',t:'Cardio',s:'Activity and minutes'},
   {k:'bw',f:'fBw',t:'Bodyweight',daily:()=>DB.bodyweight.some(b=>b.date===curDay())},
-  {k:'bp',f:'fBp',t:'Blood pressure',daily:()=>DB.bp.some(b=>b.date===curDay())},
+  {k:'bp',f:'fBp',t:'Blood pressure',multi:()=>DB.bp.filter(b=>b.date===curDay()).length},
   {k:'sleep',f:'fSleep',t:'Sleep',daily:()=>DB.sleep.some(s=>s.date===curDay())},
 ];
 const qIcon=k=>`<span class="qi"><svg viewBox="0 0 24 24">${QI[k]}</svg></span>`;
@@ -1874,7 +2119,8 @@ function openAdd(){
   const done=QA.filter(q=>q.daily&&q.daily()), todo=QA.filter(q=>!(q.daily&&q.daily()));
   openModal(`<h3>${isToday()?'Add':'Add to '+dayLabel()}</h3>
     ${todo.map(q=>`<button class="qa" onclick="openForm('${q.k}')">${qIcon(q.k)}<span><b>${q.t}</b>
-      ${q.daily?`<small class="due">Not logged ${dayWord()} yet</small>`:`<small>${q.s}</small>`}</span></button>`).join('')}
+      ${q.multi?(q.multi()?`<small>${q.multi()} reading${q.multi()>1?'s':''} ${dayWord()} — add another</small>`:`<small class="due">Not logged ${dayWord()} yet</small>`)
+        :q.daily?`<small class="due">Not logged ${dayWord()} yet</small>`:`<small>${q.s}</small>`}</span></button>`).join('')}
     ${done.length?`<div class="qa-done">Already logged ${dayWord()} — tap to redo:<br>${done.map(q=>`<button class="chip sm" onclick="openForm('${q.k}')">✓ ${q.t}</button>`).join('')}</div>`:''}`);
 }
 function ensureForms(){ if(!comboLift||!comboFood||!comboCardio){ renderFood(); renderLifts(); } }
@@ -1887,6 +2133,7 @@ function openForm(k){
   renderHeader();
   if(k==='lift'){ syncRpeToggle(); renderLogHint(); renderSheetLiftChart(); }
   if(k==='sleep') prepSleepForm();
+  if(k==='bp') document.getElementById('bpTime').value=nowHM();
   const first={bw:'bwInput',bp:'bpSys'}[k]; if(first) document.getElementById(first).focus();
 }
 function inSheet(id){ const n=document.getElementById(id); return !!(n&&n.closest('#sheet')); }
@@ -2436,9 +2683,9 @@ function renderBodyweight(){
 function logBp(){
   const sys=+document.getElementById('bpSys').value, dia=+document.getElementById('bpDia').value, pulse=+document.getElementById('bpPulse').value||null;
   if(!sys||!dia){ toast('Enter systolic and diastolic'); return; }
-  DB.bp.push({id:uid(),date:curDay(),time:nowHM(),sys,dia,pulse}); save();
-  ['bpSys','bpDia','bpPulse'].forEach(i=>document.getElementById(i).value='');
-  ['bpSys','bpDia','bpPulse'].forEach(i=>document.getElementById(i).value='');
+  const time=document.getElementById('bpTime').value||nowHM();
+  DB.bp.push({id:uid(),date:curDay(),time,sys,dia,pulse}); save();
+  ['bpSys','bpDia','bpPulse','bpTime'].forEach(i=>document.getElementById(i).value='');
   closeModal(); renderCurrent(); toast(isToday()?'Reading logged':'Logged to '+dayLabel());
 }
 function delBp(id){ DB.bp=DB.bp.filter(b=>b.id!==id); save(); renderBp(); }
@@ -2461,15 +2708,49 @@ function renderBp(){
   const avgS=Math.round(recent.reduce((a,r)=>a+r.sys,0)/recent.length), avgD=Math.round(recent.reduce((a,r)=>a+r.dia,0)/recent.length);
   stat.innerHTML=`<div class="big">${last.sys}/${last.dia}${last.pulse?` <small style="font-size:13px; color:var(--muted); font-weight:400;">${last.pulse} bpm</small>`:''}</div>
     <div class="stat-sub" style="margin-bottom:0;">${dayLabel(last.date)} · last ${recent.length} avg ${avgS}/${avgD}</div>`;
-  const st=chartState.bp, cut=rangeCutoff(st.range);
-  wrap.innerHTML=ctrlBar('bp')+svgChart([
-    {points:sysAll.filter(p=>p.date>=cut),color:cssVar('--accent2','#C1554A'),type:'line'},
-    {points:diaAll.filter(p=>p.date>=cut),color:cssVar('--blue','#6FA3DC'),type:'line'}
-  ],{refs:st.refs?[{v:120,label:'120',color:'var(--muted)'},{v:80,label:'80',color:'var(--muted)'}]:[]})
-  + `<div class="muted" style="font-size:11.5px; margin-top:4px;"><span style="color:var(--accent2)">■</span> systolic &nbsp; <span style="color:var(--blue)">■</span> diastolic${st.refs?' · reference 120/80':''}</div>`;
+  const st=chartState.bp, ref=DB.bpRef||{sys:120,dia:80}, sysC=cssVar('--accent2','#C1554A'), diaC=cssVar('--blue','#6FA3DC');
+  const refs=st.refs?[{v:ref.sys,label:String(ref.sys),color:'var(--accent2)'},{v:ref.dia,label:String(ref.dia),color:'var(--blue)'}]:[];
+  let chart, sub;
+  if(st.range==='D'){
+    // day view: every reading on the selected day, by time
+    const day=rows.filter(r=>r.date===curDay());
+    const pts=f=>day.map((r,i)=>({date:String(i).padStart(3,'0'),v:r[f],name:r.time}));
+    chart=day.length?svgChart([{points:pts('sys'),color:sysC,type:'line'},{points:pts('dia'),color:diaC,type:'line'}],{refs})
+      :`<div class="empty">No readings on ${dayLabel()}</div>`;
+    sub=`<div class="hint" style="margin:0 0 6px;">${day.length} reading${day.length===1?'':'s'} on ${dayLabel()}</div>`;
+  } else {
+    // one point per day: that day's average, highest or lowest
+    const agg={avg:a=>round1(a.reduce((x,v)=>x+v,0)/a.length),high:a=>Math.max(...a),low:a=>Math.min(...a)}[st.agg||'avg'];
+    const cut=rangeCutoff(st.range), inR=dates.filter(d=>d>=cut);
+    const pts=f=>inR.map(d=>({date:d,v:agg(byDate[d].map(r=>r[f]))}));
+    chart=svgChart([{points:pts('sys'),color:sysC,type:'line'},{points:pts('dia'),color:diaC,type:'line'}],{refs});
+    sub=`<div class="ctrls"><span class="muted" style="font-size:11.5px; margin-right:6px;">Per day</span>${[['avg','Average'],['high','High'],['low','Low']]
+      .map(([k,l])=>`<button class="chip sm${(st.agg||'avg')===k?' on':''}" onclick="setBpAgg('${k}')">${l}</button>`).join('')}</div>`;
+  }
+  wrap.innerHTML=ctrlBar('bp')+sub+chart
+  + `<div class="flexrow" style="margin-top:4px;"><span class="muted" style="font-size:11.5px;"><span style="color:var(--accent2)">■</span> systolic &nbsp; <span style="color:var(--blue)">■</span> diastolic</span>
+     <button class="linkbtn" onclick="editBpRef()">ref ${ref.sys}/${ref.dia}</button></div>`;
   document.getElementById('bpList').innerHTML=seeMore('bp',rows.slice().reverse().map(r=>`
     <div class="listrow"><div><div class="r-title num">${r.sys}/${r.dia}</div><div class="r-sub">${dayLabel(r.date)} ${r.time}${r.pulse?' · '+r.pulse+' bpm':''}</div></div>
     <button class="del" onclick="delBp('${r.id}')">×</button></div>`),5);
+}
+function setBpAgg(k){ chartState.bp.agg=k; renderBp(); }
+function editBpRef(){
+  if(VIEWER) return;
+  const r=DB.bpRef||{sys:120,dia:80};
+  openModal(`<h3>Reference lines</h3>
+    <div class="hint">Drawn on the blood pressure chart when “markers” is on — e.g. a target from your doctor.</div>
+    <div class="row">
+      <div><label>Systolic</label><input type="number" id="refSys" inputmode="numeric" value="${r.sys}"></div>
+      <div><label>Diastolic</label><input type="number" id="refDia" inputmode="numeric" value="${r.dia}"></div>
+    </div>
+    <button class="btn block" onclick="saveBpRef()">Save</button>
+    <button class="btn secondary block" style="margin-top:8px;" onclick="saveBpRef(true)">Reset to 120/80</button>`);
+}
+function saveBpRef(reset){
+  const sys=reset?120:+document.getElementById('refSys').value, dia=reset?80:+document.getElementById('refDia').value;
+  if(!sys||!dia){ toast('Enter systolic and diastolic'); return; }
+  DB.bpRef={sys,dia}; chartState.bp.refs=true; save(); closeModal(); renderBp();
 }
 function logSleep(){
   const bed=document.getElementById('sleepBed').value, wake=document.getElementById('sleepWake').value;
@@ -2706,7 +2987,7 @@ function logDose(){
 /* ============ settings ============ */
 let comboSquat,comboBench,comboDead;
 function renderSettings(){
-  renderProCard(); renderColors(); renderSync();
+  renderProCard(); renderColors(); renderSync(); renderShare();
   if(!comboSquat){
     comboSquat=new Combo('comboSquat',{placeholder:'Pick squat variation',getItems:exItems});
     comboBench=new Combo('comboBench',{placeholder:'Pick bench variation',getItems:exItems});
@@ -2802,6 +3083,7 @@ function resetAll(){
 /* ============ reminders ============ */
 let lastFired={};
 function checkReminders(){
+  if(VIEWER) return;
   const now=new Date(), hhmm=nowHM(), key=todayStr()+'_'+hhmm, r=DB.reminders;
   const fire=(msg,tag)=>{
     if(lastFired[tag]===key) return; lastFired[tag]=key;
@@ -2819,9 +3101,11 @@ load();
 if(!PRO_ENABLED){ document.getElementById('proTitle').remove(); document.getElementById('proCard').remove(); }
 applyTheme();
 initCollapsibles();
+if(VIEWER) initViewer();
 showView('dash');
 renderSession();
 if(SYNC) syncNow();
+if(DB.share) scheduleShare(1500);
 </script>
 </body>
 </html>
