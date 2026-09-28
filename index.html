@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Bloobledoop</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -48,6 +48,7 @@
   .hdr-btn[hidden]{display:none;}
   main{flex:1; overflow-y:auto; overscroll-behavior-y:contain; padding:10px 14px 12px; -webkit-overflow-scrolling:touch;}
   body.modal-open main{overflow:hidden;}
+  body.kb-open nav.tabs{display:none;}
   nav.tabs{
     flex:0 0 auto; display:flex; align-items:flex-end; background:var(--panel); border-top:1px solid var(--border);
     padding-bottom:max(4px, calc(env(safe-area-inset-bottom,0px) - 16px)); z-index:30;
@@ -522,6 +523,7 @@
           <div><label>Protein (g)</label><input type="number" id="tProt"></div>
           <div><label>Fat (g)</label><input type="number" id="tFat"></div>
         </div>
+        <div id="autoStatus" class="hint" style="margin:-2px 0 10px;"></div>
         <button class="btn block" onclick="saveTargets()">Save targets</button>
         <details style="margin-top:10px;">
           <summary>Auto-calculate from bodyweight</summary>
@@ -529,7 +531,8 @@
           <input type="number" id="calcBw">
           <label>Goal</label>
           <select id="goalSelect"><option value="cut">Cut</option><option value="maintain">Maintain</option><option value="bulk">Bulk</option></select>
-          <button class="btn secondary block" onclick="autoTargets()">Calculate & fill in</button>
+          <label class="refbox" style="margin-bottom:12px; font-size:13px; white-space:normal;"><input type="checkbox" id="calcKeep" checked> Keep updating when I log a new bodyweight</label>
+          <button class="btn secondary block" onclick="autoTargets()">Calculate & save</button>
         </details>
       </div>
 
@@ -671,7 +674,7 @@ function defaultStore(){
     foods:[], meals:[], exercises:[], sets:[], sleep:[],
     bloodwork:[], doses:[], bodyweight:[], bp:[], rpeExercises:[],
     medSchedule:[], medLog:[], medPresets:[], cardio:[], theme:{accent:null,mode:'auto'}, unit:'lb', collapsed:{'view-food:Food library':true,'view-lifts:Lift library':true,'view-meds:Add to schedule':true},
-    goals:{bw:null,lifts:{}}, plans:[], session:null, labs:[], labResults:[], pro:null,
+    goals:{bw:null,lifts:{}}, macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
     sbd:{squat:null,bench:null,deadlift:null},
     targets:{carb:0,prot:0,fat:0},
     reminders:{mealTimes:[],sleepTime:'',bwDay:null},
@@ -1222,7 +1225,10 @@ function renderDash(){
   const t=macrosForDay(curDay()), T=DB.targets;
   const dayMeals=DB.meals.filter(m=>m.date===curDay()).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
   document.getElementById('macroCard').innerHTML=`
-    <div class="flexrow" style="margin-bottom:10px;"><span class="muted">Calories</span><span class="big">${Math.round(t.cal)}</span></div>
+    ${(()=>{ const tc=Math.round((T.carb||0)*4+(T.prot||0)*4+(T.fat||0)*9), pct=tc?Math.min(100,t.cal/tc*100):0;
+      return `<div style="margin-bottom:12px;"><div class="flexrow"><span class="muted">Calories</span>
+        <span class="num"><span class="big">${Math.round(t.cal)}</span><span class="muted" style="font-size:15px;"> / ${tc||'—'}</span></span></div>
+        ${tc?`<div class="bar ${t.cal>tc?'over':''}"><div style="width:${pct}%"></div></div>`:''}</div>`; })()}
     ${macroBar('Protein',t.prot,T.prot,'g')}${macroBar('Carbs',t.carb,T.carb,'g')}${macroBar('Fat',t.fat,T.fat,'g')}
     ${(!T.carb&&!T.prot&&!T.fat)?'<div class="empty">Set targets in More → Daily macro targets</div>':''}
     ${dayMeals.map(m=>{ const x=mealMacros(m); return `<div class="listrow"><div><div class="r-title">${esc(x.name)}</div><div class="r-sub">${m.time||'—'} · ${m.mealType}</div></div><div class="r-val" style="font-size:12px;">P${Math.round(x.prot)} C${Math.round(x.carb)} F${Math.round(x.fat)}</div></div>`; }).join('')}`;
@@ -1822,6 +1828,30 @@ function addLabResult(id){
 }
 function delLabResult(rid,id){ DB.labResults=DB.labResults.filter(r=>r.id!==rid); save(); renderLabs(); openLab(id); }
 
+/* ============ keyboard: keep popups & inputs above it ============
+   iOS doesn't shrink the page when the keyboard opens, so fit the app, popups and the
+   session screen to the visible area and scroll the focused field into view. */
+(function(){
+  const vv=window.visualViewport; if(!vv) return;
+  let raf=0;
+  const fit=()=>{
+    raf=0;
+    const open=window.innerHeight-vv.height>120;
+    document.body.classList.toggle('kb-open',open);
+    [document.querySelector('.app'),document.getElementById('modal'),document.getElementById('sessionOv')].forEach(el=>{
+      if(!el) return;
+      if(open){ el.style.top=vv.offsetTop+'px'; el.style.height=vv.height+'px'; el.style.bottom='auto'; }
+      else { el.style.top=''; el.style.height=''; el.style.bottom=''; }
+    });
+  };
+  const queue=()=>{ if(!raf) raf=requestAnimationFrame(fit); };
+  vv.addEventListener('resize',queue); vv.addEventListener('scroll',queue);
+  document.addEventListener('focusin',e=>{
+    const a=e.target; if(!a||!/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.type==='checkbox') return;
+    setTimeout(()=>{ if(document.activeElement===a) a.scrollIntoView({block:'center',behavior:'smooth'}); },320);
+  });
+})();
+
 /* ============ + quick add ============ */
 const QI={
   lift:'<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
@@ -2379,11 +2409,11 @@ function logBodyweight(){
   const w=toLb(+document.getElementById('bwInput').value);
   if(!w){ toast('Enter a weight'); return; }
   DB.bodyweight=DB.bodyweight.filter(b=>b.date!==curDay());
-  DB.bodyweight.push({id:uid(),date:curDay(),weight:w}); save();
+  DB.bodyweight.push({id:uid(),date:curDay(),weight:w}); refreshAutoTargets(); save();
   document.getElementById('bwInput').value='';
   closeModal(); renderCurrent(); toast(isToday()?'Bodyweight logged':'Logged to '+dayLabel());
 }
-function delBwEntry(id){ DB.bodyweight=DB.bodyweight.filter(b=>b.id!==id); save(); renderBodyweight(); }
+function delBwEntry(id){ DB.bodyweight=DB.bodyweight.filter(b=>b.id!==id); refreshAutoTargets(); save(); renderCurrent(); }
 function renderBodyweight(){
   const rows=DB.bodyweight.slice().sort((a,b)=>a.date.localeCompare(b.date));
   const wrap=document.getElementById('bwChartWrap'), stat=document.getElementById('bwStat');
@@ -2683,9 +2713,10 @@ function renderSettings(){
     comboDead=new Combo('comboDead',{placeholder:'Pick deadlift variation',getItems:exItems});
   }
   comboSquat.setSelection(DB.sbd.squat); comboBench.setSelection(DB.sbd.bench); comboDead.setSelection(DB.sbd.deadlift);
-  document.getElementById('tCarb').value=DB.targets.carb||'';
-  document.getElementById('tProt').value=DB.targets.prot||'';
-  document.getElementById('tFat').value=DB.targets.fat||'';
+  fillTargetInputs();
+  if(DB.macroAuto){ document.getElementById('goalSelect').value=DB.macroAuto.goal; document.getElementById('calcKeep').checked=!!DB.macroAuto.on; }
+  else document.getElementById('goalSelect').value='maintain';
+  renderAutoStatus();
   document.getElementById('mealTimes').value=(DB.reminders.mealTimes||[]).join(', ');
   document.getElementById('sleepReminderTime').value=DB.reminders.sleepTime||'';
   document.getElementById('bwDay').value=DB.reminders.bwDay||'';
@@ -2699,16 +2730,42 @@ function saveSbd(){
 function delBw(id){ DB.bloodwork=DB.bloodwork.filter(b=>b.id!==id); save(); renderLabs(); }
 function saveTargets(){
   DB.targets={carb:+document.getElementById('tCarb').value||0,prot:+document.getElementById('tProt').value||0,fat:+document.getElementById('tFat').value||0};
-  save(); toast('Targets saved');
+  const wasAuto=DB.macroAuto&&DB.macroAuto.on;
+  if(wasAuto) DB.macroAuto.on=false;           // typed your own numbers, so stop overwriting them
+  save(); renderAutoStatus(); toast(wasAuto?'Targets saved — auto-update turned off':'Targets saved');
 }
+function calcMacros(bwLb,goal){
+  const prot=Math.round(bwLb*1.0), fat=Math.round(bwLb*0.35);
+  const cal=goal==='cut'?bwLb*12:goal==='bulk'?bwLb*17:bwLb*15;
+  return {carb:Math.max(0,Math.round((cal-prot*4-fat*9)/4)),prot,fat};
+}
+const kcalOf=t=>Math.round((t.carb||0)*4+(t.prot||0)*4+(t.fat||0)*9);
 function autoTargets(){
   const bw=toLb(+document.getElementById('calcBw').value); if(!bw){ toast('Enter bodyweight'); return; }
   const goal=document.getElementById('goalSelect').value;
-  const prot=Math.round(bw*1.0), fat=Math.round(bw*0.35);
-  const cal=goal==='cut'?bw*12:goal==='bulk'?bw*17:bw*15;
-  document.getElementById('tCarb').value=Math.max(0,Math.round((cal-prot*4-fat*9)/4));
-  document.getElementById('tProt').value=prot; document.getElementById('tFat').value=fat;
-  toast('Calculated — review and save');
+  DB.targets=calcMacros(bw,goal);
+  DB.macroAuto={on:document.getElementById('calcKeep').checked,goal,bw};
+  save(); fillTargetInputs(); renderAutoStatus();
+  toast(`Saved — ${kcalOf(DB.targets)} kcal a day`);
+}
+/* called when bodyweight changes */
+function refreshAutoTargets(){
+  const a=DB.macroAuto; if(!a||!a.on) return;
+  const latest=DB.bodyweight.slice().sort((x,y)=>x.date.localeCompare(y.date)).pop();
+  const bw=latest?latest.weight:a.bw; if(!bw) return;
+  a.bw=bw; DB.targets=calcMacros(bw,a.goal);
+}
+function fillTargetInputs(){
+  document.getElementById('tCarb').value=DB.targets.carb||'';
+  document.getElementById('tProt').value=DB.targets.prot||'';
+  document.getElementById('tFat').value=DB.targets.fat||'';
+}
+function renderAutoStatus(){
+  const el=document.getElementById('autoStatus'); if(!el) return;
+  const a=DB.macroAuto, k=kcalOf(DB.targets);
+  el.innerHTML=a&&a.on
+    ?`Auto: ${({cut:'cut',maintain:'maintenance',bulk:'bulk'})[a.goal]} at ${W(a.bw)} ${unit()} · ${k} kcal. Updates when you log bodyweight.`
+    :(k?`${k} kcal a day`:'');
 }
 function saveReminders(){
   DB.reminders={
