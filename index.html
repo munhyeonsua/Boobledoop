@@ -347,6 +347,16 @@
   .cyc-comp .flexrow{margin-bottom:6px;}
   .cyc-add{background:var(--panel-2); border-radius:9px; padding:10px 10px 2px; margin:8px 0;}
   .cyc-add input, .cyc-add select{background:var(--panel);}
+  /* movable tabs */
+  nav.tabs button.dragging{transform:translateY(-6px) scale(1.12); color:var(--accent); transition:transform .12s;}
+  nav.tabs.reordering button:not(.dragging){opacity:.55;}
+  /* quote after a set */
+  .quote-pop{position:fixed; left:16px; right:16px; top:calc(64px + env(safe-area-inset-top,0px)); max-width:480px; margin:0 auto; z-index:84; pointer-events:none;
+    background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:10px; padding:12px 14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.3); animation:quoteFade 10s ease-in forwards;}
+  .qp-q{font-size:17px; font-weight:700; line-height:1.3; font-style:italic;}
+  .qp-a{font-family:var(--mono); font-size:12px; color:var(--accent); margin-top:6px;}
+  @keyframes quoteFade{ 0%{opacity:0; transform:translateY(-8px);} 4%{opacity:1; transform:none;} 100%{opacity:0;} }
   /* read-only live view opened from a share link */
   .vhide{display:none !important;}
   body.viewer nav.tabs button.plus, body.viewer nav.tabs button[data-view="settings"], body.viewer .del,
@@ -622,6 +632,12 @@
       <h2 class="section-title">Share a live view</h2>
       <div class="card" id="shareCard"></div>
 
+      <h2 class="section-title">Tab order</h2>
+      <div class="card" id="tabOrderCard"></div>
+
+      <h2 class="section-title">Quotes after sets</h2>
+      <div class="card" id="quoteCard"></div>
+
       <h2 class="section-title">Colors</h2>
       <div class="card">
         <label>Accent</label>
@@ -643,13 +659,13 @@
   </main>
   <button id="sessionBar" hidden onclick="showSession()"></button>
   <nav class="tabs">
-    <button class="active" data-view="dash" onclick="showView('dash')"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg>Today</button>
-    <button data-view="food" onclick="showView('food')"><svg class="ic" viewBox="0 0 24 24"><path d="M7 3.5v17"/><path d="M4.5 3.5v4.5a2.5 2.5 0 0 0 5 0V3.5"/><path d="M17.5 20.5V3.5c-2.2 1.2-3.3 3.8-3.3 7.2v2.3h3.3"/></svg>Food</button>
-    <button data-view="lifts" onclick="showView('lifts')"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>Lifts</button>
-    <button class="plus" onclick="openAdd()" aria-label="Add"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></button>
-    <button data-view="meds" onclick="showView('meds')"><svg class="ic" viewBox="0 0 24 24"><path d="M10.2 20.2a5 5 0 0 1-7-7l6.6-6.6a5 5 0 0 1 7 7z"/><path d="m8.5 8.5 7 7"/></svg>Meds</button>
-    <button data-view="body" onclick="showView('body')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/><path d="M4.8 12.5h3.7l1.5-2.4 2.3 4.6 1.5-2.2h5.4"/></svg>Body</button>
-    <button data-view="settings" onclick="showView('settings')"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></svg>More</button>
+    <button class="active" data-tab="dash" data-view="dash" onclick="showView('dash')"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg>Today</button>
+    <button data-tab="food" data-view="food" onclick="showView('food')"><svg class="ic" viewBox="0 0 24 24"><path d="M7 3.5v17"/><path d="M4.5 3.5v4.5a2.5 2.5 0 0 0 5 0V3.5"/><path d="M17.5 20.5V3.5c-2.2 1.2-3.3 3.8-3.3 7.2v2.3h3.3"/></svg>Food</button>
+    <button data-tab="lifts" data-view="lifts" onclick="showView('lifts')"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>Lifts</button>
+    <button class="plus" data-tab="add" onclick="openAdd()" aria-label="Add"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></button>
+    <button data-tab="meds" data-view="meds" onclick="showView('meds')"><svg class="ic" viewBox="0 0 24 24"><path d="M10.2 20.2a5 5 0 0 1-7-7l6.6-6.6a5 5 0 0 1 7 7z"/><path d="m8.5 8.5 7 7"/></svg>Meds</button>
+    <button data-tab="body" data-view="body" onclick="showView('body')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/><path d="M4.8 12.5h3.7l1.5-2.4 2.3 4.6 1.5-2.2h5.4"/></svg>Body</button>
+    <button data-tab="settings" data-view="settings" onclick="showView('settings')"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></svg>More</button>
   </nav>
 </div>
 <div id="formStash">
@@ -757,7 +773,8 @@ function defaultStore(){
     bloodwork:[], doses:[], bodyweight:[], bp:[], rpeExercises:[],
     medSchedule:[], medLog:[], medPresets:[], cardio:[], theme:{accent:null,mode:'auto'}, unit:'lb', collapsed:{'view-food:Food library':true,'view-lifts:Lift library':true,'view-meds:Add to schedule':true},
     goals:{bw:null,lifts:{}}, bpRef:{sys:120,dia:80}, share:null,
-    naps:[], notes:[], cycles:[], charts:{}, microsOn:true, microGoals:{}, microHi:null, usdaKey:'', macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
+    naps:[], notes:[], cycles:[], charts:{}, microsOn:true, microGoals:{}, microHi:null, usdaKey:'',
+    tabOrder:null, quotes:null, quotesOn:true, macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
     sbd:{squat:null,bench:null,deadlift:null},
     targets:{carb:0,prot:0,fat:0},
     reminders:{mealTimes:[],sleepTime:'',bwDay:null},
@@ -1841,7 +1858,7 @@ function applySynced(data){
   stamp(true);
   try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){}
   if(JSON.stringify(DB)===before) return;
-  loadChartPrefs();
+  loadChartPrefs(); applyTabOrder();
   applyTheme();
   const a=document.activeElement, typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName);
   if(!typing&&!document.getElementById('modal').classList.contains('open')){ renderCurrent(); renderSession(); }
@@ -2828,7 +2845,7 @@ function saveSxSet(noRender){
   if(set.rpe&&it.rpe&&set.rpe!==it.rpe) msg+=` · RPE ${set.rpe} vs target ${it.rpe}`;
   if(st&&w>st.best.weight&&isPro()) confetti(40);
   if(it.done.length>=it.sets){ const nx=sxNextIdx(); if(nx>=0){ S.cur=nx; msg+=` · next: ${exName(S.items[nx].exId)}`; } }
-  save(); toast(msg);
+  save(); toast(msg); showSetQuote();
   if(!noRender) renderSession();
   return true;
 }
@@ -3031,6 +3048,7 @@ function logSet(){
   prefillNext(exId); renderLogHint(); renderSheetLiftChart(); renderCurrent();
   toast(pr?'Set logged — new PR':(isToday()?'Set logged':'Set logged to '+dayLabel()));
   if(pr&&isPro()) confetti(40);
+  showSetQuote();
 }
 function delSet(id){ DB.sets=DB.sets.filter(s=>s.id!==id); save(); renderLifts(); }
 function setChartMetric(m){ chartMetric=m; renderLogLiftChart(); }
@@ -3714,10 +3732,119 @@ function delCycle(id){
   },renderCycleEditor);
 }
 
+/* ============ movable tabs ============
+   Hold a tab in the bottom bar, then drag it left or right. The order is saved (and synced). */
+const TAB_DEFAULT=['dash','food','lifts','add','meds','body','settings'];
+const TAB_NAMES={dash:'Today',food:'Food',lifts:'Lifts',add:'+ (add)',meds:'Meds',body:'Body',settings:'More'};
+function navEl(){ return document.querySelector('nav.tabs'); }
+function applyTabOrder(){
+  const nav=navEl(), order=DB.tabOrder||[];
+  const rank=k=>{ const i=order.indexOf(k); return i<0?100+TAB_DEFAULT.indexOf(k):i; };
+  [...nav.children].sort((a,b)=>rank(a.dataset.tab)-rank(b.dataset.tab)).forEach(b=>nav.appendChild(b));
+}
+function saveTabOrder(){ DB.tabOrder=[...navEl().children].map(b=>b.dataset.tab); save(); renderTabOrderCard(); }
+function moveTab(i,d){
+  const nav=navEl(), btns=[...nav.children], j=i+d; if(j<0||j>=btns.length) return;
+  nav.insertBefore(btns[i],d<0?btns[j]:btns[j].nextSibling); saveTabOrder();
+}
+function resetTabOrder(){ DB.tabOrder=null; save(); applyTabOrder(); renderTabOrderCard(); toast('Tabs back to the default order'); }
+function renderTabOrderCard(){
+  const el=document.getElementById('tabOrderCard'); if(!el) return;
+  const order=[...navEl().children].map(b=>b.dataset.tab);
+  el.innerHTML=`<div class="hint">Hold a tab in the bar at the bottom and drag it left or right — or use the arrows here (top = far left).</div>`
+    +order.map((k,i)=>`<div class="plan-row"><span class="pr-name">${TAB_NAMES[k]||k}</span>
+      <button class="pr-btn" onclick="moveTab(${i},-1)" ${i===0?'disabled':''} aria-label="Move left">↑</button>
+      <button class="pr-btn" onclick="moveTab(${i},1)" ${i===order.length-1?'disabled':''} aria-label="Move right">↓</button></div>`).join('')
+    +(DB.tabOrder?`<button class="btn secondary block" style="margin-top:10px;" onclick="resetTabOrder()">Reset to default</button>`:'');
+}
+(function(){
+  const nav=navEl(); let hold=null, drag=null, sx=0;
+  nav.addEventListener('pointerdown',e=>{
+    if(VIEWER) return;
+    const b=e.target.closest('button[data-tab]'); if(!b) return;
+    sx=e.clientX; clearTimeout(hold);
+    hold=setTimeout(()=>{
+      hold=null; drag=b; b.classList.add('dragging'); nav.classList.add('reordering');
+      try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){}
+    },400);
+  });
+  nav.addEventListener('pointermove',e=>{
+    if(hold&&Math.abs(e.clientX-sx)>10){ clearTimeout(hold); hold=null; }
+    if(!drag) return;
+    e.preventDefault();
+    const btns=[...nav.children];
+    const over=btns.find(x=>{ const r=x.getBoundingClientRect(); return !x.classList.contains('vhide')&&e.clientX>=r.left&&e.clientX<r.right; });
+    if(over&&over!==drag) nav.insertBefore(drag,btns.indexOf(over)>btns.indexOf(drag)?over.nextSibling:over);
+  });
+  const end=()=>{
+    clearTimeout(hold); hold=null; if(!drag) return;
+    drag.classList.remove('dragging'); nav.classList.remove('reordering'); drag=null;
+    nav._dragAt=Date.now(); saveTabOrder();
+  };
+  nav.addEventListener('pointerup',end); nav.addEventListener('pointercancel',end);
+  // a hold that turned into a drag shouldn't also switch tabs
+  nav.addEventListener('click',e=>{ if(Date.now()-(nav._dragAt||0)<400){ e.stopPropagation(); e.preventDefault(); } },true);
+  nav.addEventListener('contextmenu',e=>e.preventDefault());
+})();
+
+/* ============ a quote after each set ============
+   One line each: "quote — who said it". Edit the list in More → Quotes after sets. */
+const QUOTES_DEFAULT=[
+  'YEAH BUDDY! — Ronnie Coleman',
+  'Light weight, baby! — Ronnie Coleman',
+  'Ain’t nothin’ but a peanut! — Ronnie Coleman',
+  'Everybody wanna be a bodybuilder, but don’t nobody wanna lift no heavy-ass weights. — Ronnie Coleman',
+  'Ain’t nothin’ to it but to do it. — Ronnie Coleman',
+  'The last three or four reps is what makes the muscle grow. — Arnold Schwarzenegger',
+  'The mind is the limit. — Arnold Schwarzenegger',
+  'Strength does not come from winning. Your struggles develop your strengths. — Arnold Schwarzenegger',
+  'Everybody pities the weak; jealousy you have to earn. — Arnold Schwarzenegger',
+  'Milk is for babies. When you grow up you have to drink beer. — Arnold Schwarzenegger',
+  'You can’t climb the ladder of success with your hands in your pockets. — Arnold Schwarzenegger',
+  'The worst thing I can be is the same as everybody else. — Arnold Schwarzenegger',
+  'Stimulate, don’t annihilate. — Lee Haney',
+  'It’s still your set! — CT Fletcher',
+  'I command you to grow! — CT Fletcher',
+];
+let lastQuote=-1;
+function quoteList(){ return (DB.quotes&&DB.quotes.length?DB.quotes:QUOTES_DEFAULT).filter(x=>x.trim()); }
+function parseQuote(line){
+  const i=Math.max(line.lastIndexOf(' — '),line.lastIndexOf(' – '),line.lastIndexOf(' - '));
+  const q=(i>0?line.slice(0,i):line).trim().replace(/^["“”']+|["“”']+$/g,'');
+  return {q,a:i>0?line.slice(i+3).trim():''};
+}
+function showSetQuote(force){
+  if(VIEWER||(!force&&DB.quotesOn===false)) return;
+  const list=quoteList(); if(!list.length) return;
+  let i=Math.floor(Math.random()*list.length);
+  if(list.length>1&&i===lastQuote) i=(i+1)%list.length;
+  lastQuote=i;
+  const {q,a}=parseQuote(list[i]);
+  document.querySelectorAll('.quote-pop').forEach(n=>n.remove());
+  const el=document.createElement('div'); el.className='quote-pop';
+  el.innerHTML=`<div class="qp-q">“${esc(q)}”</div>${a?`<div class="qp-a">— ${esc(a)}</div>`:''}`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),10200);
+}
+function renderQuoteSettings(){
+  const el=document.getElementById('quoteCard'); if(!el) return;
+  el.innerHTML=`<label class="refbox" style="font-size:13.5px; color:var(--text); margin-bottom:12px; white-space:normal;"><input type="checkbox" ${DB.quotesOn!==false?'checked':''}
+      onchange="DB.quotesOn=this.checked; save()"> Show a quote after each set — it fades out over 10 seconds</label>
+    <label>One per line: quote — who said it</label>
+    <textarea id="quoteList" rows="8" spellcheck="false">${esc(quoteList().join('\n'))}</textarea>
+    <div class="row"><button class="btn secondary" onclick="showSetQuote(true)">Preview</button><button class="btn" onclick="saveQuotes()">Save quotes</button></div>
+    ${DB.quotes?`<button class="btn secondary block" style="margin-top:8px;" onclick="resetQuotes()">Reset to the starter list</button>`:''}`;
+}
+function saveQuotes(){
+  const lines=document.getElementById('quoteList').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  DB.quotes=lines.length?lines:null; save(); renderQuoteSettings(); toast(`Saved ${lines.length} quote${lines.length===1?'':'s'}`);
+}
+function resetQuotes(){ DB.quotes=null; save(); renderQuoteSettings(); toast('Back to the starter list'); }
+
 /* ============ settings ============ */
 let comboSquat,comboBench,comboDead;
 function renderSettings(){
-  renderProCard(); renderColors(); renderSync(); renderShare(); renderMicroSettings();
+  renderProCard(); renderColors(); renderSync(); renderShare(); renderMicroSettings(); renderTabOrderCard(); renderQuoteSettings();
   if(!comboSquat){
     comboSquat=new Combo('comboSquat',{placeholder:'Pick squat variation',getItems:exItems});
     comboBench=new Combo('comboBench',{placeholder:'Pick bench variation',getItems:exItems});
@@ -3829,6 +3956,7 @@ setInterval(checkReminders,20000);
 
 load();
 loadChartPrefs();
+applyTabOrder();
 if(!PRO_ENABLED){ document.getElementById('proTitle').remove(); document.getElementById('proCard').remove(); }
 applyTheme();
 initCollapsibles();
