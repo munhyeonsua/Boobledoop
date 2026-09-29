@@ -299,6 +299,54 @@
   .share-cats{display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:12px;}
   .share-cats .refbox{font-size:13px; color:var(--text);}
   .share-link{font-family:var(--mono); font-size:12px;}
+  /* micronutrients */
+  :root{--teal:#2E8481;}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--teal:#5FB8B3;} }
+  :root[data-theme="dark"]{--teal:#5FB8B3;}
+  .mhide{display:none !important;}
+  .mgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;}
+  .mh{min-width:0; cursor:pointer;}
+  .mh-top,.mr-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:13px;}
+  .mh-top span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .mbar{height:6px; border-radius:3px; background:var(--panel-2); overflow:hidden; margin-top:5px;}
+  .mbar > div{height:100%; background:var(--accent); border-radius:3px;}
+  .mbar.full > div{background:var(--good);}
+  .mbar.over > div{background:var(--accent2);}
+  .mh.nodata .mh-top{color:var(--muted);}
+  .mh.part .mh-top, .mrow.part .mr-top{color:var(--teal);}
+  .mgroup{font-size:13.5px; font-weight:600; margin:16px 0 2px;}
+  .mrow{padding:7px 0;}
+  .mrow.tap{cursor:pointer;}
+  .mrow.nt{border-bottom:1px dashed var(--border);}
+  .mrow.d1{padding-left:14px;} .mrow.d2{padding-left:28px;} .mrow.d3{padding-left:42px;}
+  .mr-top b{font-weight:500;}
+  .mi-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 10px;}
+  .mi-grid label{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .usda-box{margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--border);}
+  .usda-q{display:flex; gap:8px;}
+  .usda-q input{margin-bottom:0;}
+  .usda-q .btn{flex:0 0 auto;}
+  .usda-list{max-height:260px; overflow-y:auto; margin:8px 0 2px; border:1px solid var(--border); border-radius:8px;}
+  .usda-item{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--border); padding:9px 10px; color:var(--text); font-family:var(--sans);}
+  .usda-item:last-child{border-bottom:none;}
+  .usda-item b{font-weight:500; font-size:13.5px;}
+  .usda-item span{display:block; font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:2px;}
+  .usda-amt{display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:10px 0 4px; font-size:13px;}
+  .usda-amt input{width:90px; margin:0;}
+  .usda-amt small{color:var(--muted); font-size:11.5px;}
+  details.micro-in{margin-bottom:10px;}
+  /* plans: RPE targets */
+  .plan-row{flex-wrap:wrap;}
+  .pr-nums{flex-basis:100%; display:flex; align-items:center; gap:6px; margin-top:6px; font-size:12px;}
+  /* journal */
+  .note-text{white-space:pre-wrap; font-size:14px; line-height:1.5; cursor:pointer; overflow-wrap:anywhere;}
+  .note-empty{display:block; width:100%; text-align:left; background:none; border:1px dashed var(--border); border-radius:8px; padding:12px;
+    color:var(--muted); font-family:var(--sans); font-size:13.5px;}
+  /* cycle tracker */
+  .cyc-comp{border:1px solid var(--border); border-radius:9px; padding:8px 10px 0; margin-bottom:8px;}
+  .cyc-comp .flexrow{margin-bottom:6px;}
+  .cyc-add{background:var(--panel-2); border-radius:9px; padding:10px 10px 2px; margin:8px 0;}
+  .cyc-add input, .cyc-add select{background:var(--panel);}
   /* read-only live view opened from a share link */
   .vhide{display:none !important;}
   body.viewer nav.tabs button.plus, body.viewer nav.tabs button[data-view="settings"], body.viewer .del,
@@ -306,6 +354,8 @@
   body.viewer :is(#dashMeds,#medTodayList,#medPresets) button{pointer-events:none;}
   body.viewer [onclick^="goalModal"]{display:none !important;}
   body.viewer [onclick^="editBpRef"]{pointer-events:none; text-decoration:none;}
+  body.viewer .edit-hint, body.viewer .cyc-actions, body.viewer #cycleCard .chip{display:none !important;}
+  body.viewer #cycleCard [onclick], body.viewer #microCard .mh, body.viewer #microCard .mrow{pointer-events:none;}
   .viewer-bar{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12px; color:var(--muted);
     background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; margin-bottom:10px;}
   .viewer-bar .dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--good); margin-right:6px; vertical-align:1px;}
@@ -338,6 +388,8 @@
       <div class="card" id="dashLifts"></div>
       <h2 class="section-title" data-share="health">Sleep</h2>
       <div class="card" id="dashSleep"></div>
+      <h2 class="section-title" data-share="journal">Journal</h2>
+      <div class="card" id="dashNote"></div>
     </section>
 
     <!-- FOOD -->
@@ -345,15 +397,13 @@
       <h2 class="section-title" data-share="food" id="foodDayTitle">Eaten today</h2>
       <div class="card" id="todayMealsList"></div>
 
+      <h2 class="section-title" data-share="food" id="microTitle">Micronutrients</h2>
+      <div class="card" id="microCard"></div>
+
       <h2 class="section-title" data-share="edit">Food library</h2>
       <div class="card">
-        <label>Name</label><input id="fName" placeholder="e.g. Chicken breast, 200g">
-        <div class="row">
-          <div><label>Carbs (g)</label><input type="number" id="fCarb" value="0"></div>
-          <div><label>Protein (g)</label><input type="number" id="fProt" value="0"></div>
-          <div><label>Fat (g)</label><input type="number" id="fFat" value="0"></div>
-        </div>
-        <button class="btn block" onclick="addFood()">Add to library</button>
+        <button class="btn block" onclick="openFoodEditor()">+ New food</button>
+        <div class="hint" style="margin:8px 0 0;">Search the USDA food database or type in the label. Micronutrients are optional.</div>
       </div>
       <div class="card">
         <input id="foodFilter" placeholder="Search library" oninput="renderFoodLibrary()">
@@ -407,6 +457,9 @@
 
     <!-- MEDS -->
     <section class="view" id="view-meds">
+      <h2 class="section-title" data-share="meds">Cycle</h2>
+      <div class="card" id="cycleCard"></div>
+
       <h2 class="section-title" data-share="edit">Quick log</h2>
       <div class="card">
         <div id="medPresets"></div>
@@ -550,6 +603,9 @@
         </details>
       </div>
 
+      <h2 class="section-title">Micronutrients</h2>
+      <div class="card" id="microSettings"></div>
+
       <h2 class="section-title">Reminders</h2>
       <div class="card">
         <p class="muted" style="font-size:12px; margin-top:0;">These fire in-page and as browser notifications while the app is open. Scheduled med times alert automatically.</p>
@@ -677,6 +733,14 @@
     <input type="hidden" id="sleepQuality" value="3">
     <button class="btn block" onclick="logSleep()">Log sleep</button>
   </div>
+  <div class="qform" id="fNap">
+    <div class="row">
+      <div><label>Fell asleep</label><input type="time" id="napStart" oninput="updNapHrs()" onchange="updNapHrs()"></div>
+      <div><label>Woke up</label><input type="time" id="napEnd" oninput="updNapHrs()" onchange="updNapHrs()"></div>
+    </div>
+    <div class="sleep-hrs" id="napHrs"></div>
+    <button class="btn block" onclick="logNap()">Log nap</button>
+  </div>
 </div>
 <div class="session" id="sessionOv" hidden></div>
 <div class="toast" id="toast"></div>
@@ -692,7 +756,8 @@ function defaultStore(){
     foods:[], meals:[], exercises:[], sets:[], sleep:[],
     bloodwork:[], doses:[], bodyweight:[], bp:[], rpeExercises:[],
     medSchedule:[], medLog:[], medPresets:[], cardio:[], theme:{accent:null,mode:'auto'}, unit:'lb', collapsed:{'view-food:Food library':true,'view-lifts:Lift library':true,'view-meds:Add to schedule':true},
-    goals:{bw:null,lifts:{}}, bpRef:{sys:120,dia:80}, share:null, macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
+    goals:{bw:null,lifts:{}}, bpRef:{sys:120,dia:80}, share:null,
+    naps:[], notes:[], cycles:[], charts:{}, microsOn:true, microGoals:{}, microHi:null, usdaKey:'', macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
     sbd:{squat:null,bench:null,deadlift:null},
     targets:{carb:0,prot:0,fat:0},
     reminders:{mealTimes:[],sleepTime:'',bwDay:null},
@@ -1025,8 +1090,11 @@ function ctrlBar(key){
     <label class="refbox"><input type="checkbox" ${st.refs?'checked':''} onchange="setRefs('${key}',this.checked)">markers</label>
   </div>`;
 }
-function setRange(key,r){ chartState[key].range=r; redrawFor(key); }
-function setRefs(key,v){ chartState[key].refs=v; redrawFor(key); }
+function setRange(key,r){ chartState[key].range=r; saveChartPrefs(key); redrawFor(key); }
+function setRefs(key,v){ chartState[key].refs=v; saveChartPrefs(key); redrawFor(key); }
+/* chart settings (markers, range, BP daily mode) are saved and synced */
+function saveChartPrefs(key){ if(VIEWER) return; DB.charts=Object.assign({},DB.charts,{[key]:Object.assign({},chartState[key])}); save(); }
+function loadChartPrefs(){ const c=DB.charts||{}; for(const k in chartState) if(c[k]) Object.assign(chartState[k],c[k]); }
 function redrawFor(key){
   if(key==='lift') renderLogLiftChart();
   if(key==='bw'){ renderBodyweight(); renderDashBw(); }
@@ -1061,7 +1129,7 @@ function svgChart(series, opts){
   // series: [{points:[{date,v}], color, type:'line'|'bar'}]
   const o=Object.assign({H:150,refs:[],yPad:0.12,fixed:null,unit:''},opts||{});
   const W=320,padL=36,padR=42,padT=18,padB=22,H=o.H;
-  const all=[].concat(...series.map(s=>s.points.map(p=>p.v))).concat(o.refs.map(r=>r.v));
+  const all=[].concat(...series.map(s=>s.points.map(p=>p.v+(p.base||0)))).concat(o.refs.map(r=>r.v));
   if(all.length===0) return '<div class="empty">No data in this range</div>';
   let lo,hi;
   if(o.fixed){ lo=o.fixed[0]; hi=o.fixed[1]; }
@@ -1084,8 +1152,9 @@ function svgChart(series, opts){
     if(s.type==='bar'){
       const bw=(W-padL-padR)/Math.max(1,dates.length);
       s.points.forEach(p=>{
-        const h=Math.max(1,(H-padB)-y(p.v));
-        body+=`<rect x="${(x(xi(p.date))-bw/2+1.5).toFixed(1)}" y="${y(p.v).toFixed(1)}" width="${Math.max(2,bw-3).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${p.c||s.color}"/>`;
+        // p.base stacks this bar on top of another (e.g. a nap on top of that night's sleep)
+        const top=y(p.v+(p.base||0)), bot=p.base?y(p.base)-1:H-padB, h=Math.max(1,bot-top);
+        body+=`<rect x="${(x(xi(p.date))-bw/2+1.5).toFixed(1)}" y="${top.toFixed(1)}" width="${Math.max(2,bw-3).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${p.c||s.color}"/>`;
       });
     } else {
       const pts=s.points.map(p=>`${x(xi(p.date)).toFixed(1)},${y(p.v).toFixed(1)}`);
@@ -1097,7 +1166,8 @@ function svgChart(series, opts){
   const names={}, tails={};
   series.forEach(s=>s.points.forEach(p=>{ if(p.name) names[p.date]=p.name; if(p.label) tails[p.date]=p.label; }));
   const meta={W,H,padT,padB,lo,hi,unit:o.unit,dates,names,tails,xs:dates.map((d,i)=>+x(i).toFixed(1)),
-    series:series.map(s=>({c:s.color,v:Object.fromEntries(s.points.map(p=>[p.date,p.v]))}))};
+    series:series.map(s=>({c:s.color,n:s.name||'',v:Object.fromEntries(s.points.map(p=>[p.date,p.v])),
+      b:Object.fromEntries(s.points.filter(p=>p.base).map(p=>[p.date,p.base]))}))};
   return `<div class="chart" data-m="${esc(JSON.stringify(meta))}"><svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
     <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="var(--border)"/>
     <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="var(--border)"/>
@@ -1120,9 +1190,10 @@ function chartShow(chart,clientX){
   const vals=m.series.filter(s=>s.v[d]!=null);
   const cur=chart.querySelector('.cur'); cur.style.display='';
   const ln=cur.querySelector('line'); ln.setAttribute('x1',X); ln.setAttribute('x2',X);
-  cur.querySelector('.cd').innerHTML=vals.map(s=>`<circle cx="${X}" cy="${y(s.v[d]).toFixed(1)}" r="4.5" fill="${s.c}" stroke="var(--panel)" stroke-width="1.5"/>`).join('');
-  const rd=chart.querySelector('.rd');
-  rd.textContent=`${(m.names||{})[d]||dayLabel(d)}   ${vals.map(s=>s.v[d]).join(' / ')}${m.unit?' '+m.unit:''}${(m.tails||{})[d]?' '+m.tails[d]:''}`;
+  cur.querySelector('.cd').innerHTML=vals.map(s=>`<circle cx="${X}" cy="${y(s.v[d]+((s.b||{})[d]||0)).toFixed(1)}" r="4.5" fill="${s.c}" stroke="var(--panel)" stroke-width="1.5"/>`).join('');
+  const rd=chart.querySelector('.rd'), main=vals.filter(s=>!s.n), named=vals.filter(s=>s.n);
+  const parts=(main.length?[main.map(s=>s.v[d]).join(' / ')+(m.unit?' '+m.unit:'')]:[]).concat(named.map(s=>`${s.v[d]}${m.unit||''} ${s.n}`));
+  rd.textContent=`${(m.names||{})[d]||dayLabel(d)}   ${parts.join(' + ')}${(m.tails||{})[d]?' '+m.tails[d]:''}`;
   rd.setAttribute('font-size','10.5'); rd.style.fill='var(--text)';
 }
 (function(){
@@ -1270,16 +1341,51 @@ function renderDash(){
   renderDashBw();
 
   const due=medsDue(curDay()), el=document.getElementById('dashMeds');
-  let mh=presetsHtml(false);
+  let mh=cycDueHtml(curDay())+presetsHtml(false);
   if(due.length) mh+=`<div class="flexrow" style="margin:${DB.medPresets.length?'10px':'0'} 0 2px;"><span class="muted" style="font-size:12px;">Scheduled</span><span class="num muted" style="font-size:12px;">${due.filter(d=>d.log).length} / ${due.length}</span></div>`+medRowsHtml(due);
   el.innerHTML=mh||'<div class="empty">Nothing scheduled — add meds or quick buttons in Meds</div>';
 
   document.getElementById('dashLifts').innerHTML=(dayLiftsHtml(curDay(),false)+cardioDayHtml(curDay(),false))||`<div class="empty">No lifts logged ${dayWord()}</div>`;
 
-  const ls=DB.sleep.find(s=>s.date===curDay());
-  document.getElementById('dashSleep').innerHTML=ls
+  const ls=DB.sleep.find(s=>s.date===curDay()), dn=DB.naps.filter(n=>n.date===curDay()).sort((a,b)=>a.start.localeCompare(b.start));
+  document.getElementById('dashSleep').innerHTML=(ls
     ?`<div class="flexrow"><span>${ls.bed}–${ls.wake}</span><span class="num">${ls.hours.toFixed(1)}h <span class="qpill" style="background:${sqOf(ls.quality).c}">${sqOf(ls.quality).l}</span></span></div>`
-    :`<div class="empty">No sleep logged ${dayWord()}</div>`;
+    :`<div class="empty">No sleep logged ${dayWord()}</div>`)
+    +(dn.length?`<div class="flexrow" style="margin-top:6px; font-size:13px;"><span class="muted">+ ${dn.length} nap${dn.length>1?'s':''} · ${dn.map(n=>n.start+'–'+n.end).join(', ')}</span>
+      <span class="num">${fmtNap(dn.reduce((a,n)=>a+n.hours,0))}</span></div>`:'');
+  renderNote();
+}
+/* ============ journal ============ */
+function noteFor(d){ return (DB.notes||[]).find(n=>n.date===d); }
+function renderNote(){
+  const el=document.getElementById('dashNote'); if(!el) return;
+  const n=noteFor(curDay()), count=(DB.notes||[]).length;
+  el.innerHTML=(n?`<div class="note-text" onclick="editNote()">${esc(n.text)}</div>`
+      :`<button class="note-empty" onclick="editNote()">Write about ${dayWord()} — how you felt, energy, anything that changed</button>`)
+    +(count?`<div class="flexrow" style="margin-top:8px;"><button class="linkbtn" onclick="pastNotes()">All entries (${count})</button>${n?'<button class="linkbtn" onclick="editNote()">edit</button>':''}</div>`:'');
+}
+function editNote(){
+  if(VIEWER) return;
+  const d=curDay(), n=noteFor(d);
+  openModal(`<h3>Journal · ${dayLabel(d)}</h3>
+    <textarea id="noteText" rows="9" placeholder="How did ${dayWord()} go?">${esc(n?n.text:'')}</textarea>
+    <button class="btn block" onclick="saveNote()">Save</button>
+    ${n?`<button class="btn danger block" style="margin-top:8px;" onclick="saveNote(true)">Delete entry</button>`:''}
+    <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`);
+  const t=document.getElementById('noteText'); t.focus(); t.setSelectionRange(t.value.length,t.value.length);
+}
+function saveNote(del){
+  const d=curDay(), old=noteFor(d), text=del?'':document.getElementById('noteText').value.trim();
+  if(!text){ if(old) DB.notes=DB.notes.filter(n=>n!==old); }
+  else if(old) old.text=text;
+  else DB.notes.push({id:uid(),date:d,text});
+  save(); closeModal(); renderCurrent(); toast(!text?(old?'Entry deleted':'Nothing to save'):'Saved');
+}
+function pastNotes(){
+  const list=(DB.notes||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  openModal(`<h3>Journal</h3>${list.map(n=>`<button class="plan-pick" onclick="closeModal(); setDay('${n.date}'); showView('dash')"><b>${dayLabel(n.date)}</b>
+      <span>${esc(n.text.length>160?n.text.slice(0,160)+'…':n.text)}</span></button>`).join('')}
+    <button class="btn secondary block" style="margin-top:4px;" onclick="closeModal()">Close</button>`);
 }
 
 /* ============ food ============ */
@@ -1291,10 +1397,11 @@ function setFoodMode(m){
   document.getElementById('foodModeLib').hidden=m!=='lib';
   document.getElementById('foodModeQuick').hidden=m!=='quick';
 }
-function foodItems(){ return DB.foods.map(f=>({id:f.id,label:f.name,sub:`P${f.prot} C${f.carb} F${f.fat}`})); }
+function foodItems(){ return DB.foods.map(f=>({id:f.id,label:f.name,sub:`P${f.prot} C${f.carb} F${f.fat}${f.serving?' · '+f.serving:''}`})); }
 function renderFood(){
   if(!comboFood){
-    comboFood=new Combo('comboFood',{placeholder:'Search foods',getItems:foodItems});
+    comboFood=new Combo('comboFood',{placeholder:'Search foods — or type a new one',getItems:foodItems,allowFree:true,createLabel:'Create food',
+      onCreate:t=>openFoodEditor(null,{name:t,back:'log'})});
     attachLongPress(document.getElementById('foodLibraryList'),editFood);
   }
   document.getElementById('foodDayTitle').textContent='Eaten '+dayWord();
@@ -1306,47 +1413,127 @@ function renderFood(){
       <button class="del" onclick="delMeal('${m.id}')">remove</button></div>`;
   }).join(''):`<div class="empty">Nothing logged ${dayWord()}</div>`;
   renderFoodLibrary();
+  renderMicros();
 }
 function renderFoodLibrary(){
   const q=(document.getElementById('foodFilter').value||'').toLowerCase();
   const list=DB.foods.filter(f=>f.name.toLowerCase().includes(q));
   document.getElementById('foodLibraryList').innerHTML=list.length?seeMore(q?'foodq':'food',list.map(f=>`
     <div class="listrow" data-lp="${f.id}"><div><div class="r-title">${esc(f.name)}</div>
-      <div class="r-sub num">P${f.prot} C${f.carb} F${f.fat} · ${Math.round(f.carb*4+f.prot*4+f.fat*9)} kcal</div></div>
+      <div class="r-sub num">P${f.prot} C${f.carb} F${f.fat} · ${Math.round(f.carb*4+f.prot*4+f.fat*9)} kcal${f.serving?' · '+esc(f.serving):''}${f.micros&&Object.keys(f.micros).length?' · +micros':''}</div></div>
     <button class="del" onclick="delFood('${f.id}')">delete</button></div>`),q?50:10,'renderFoodLibrary()'):'<div class="empty">No matches</div>';
 }
-function editFood(id){
-  const f=DB.foods.find(x=>x.id===id); if(!f) return;
-  openModal(`<h3>Edit food</h3>
-    <label>Name</label><input id="efName" value="${esc(f.name)}">
-    <div class="row">
-      <div><label>Carbs</label><input type="number" id="efCarb" value="${f.carb}"></div>
-      <div><label>Protein</label><input type="number" id="efProt" value="${f.prot}"></div>
-      <div><label>Fat</label><input type="number" id="efFat" value="${f.fat}"></div>
+/* ---- food editor: USDA lookup, macros, optional micronutrients ---- */
+let foodEd=null;
+function titleCase(t){ t=String(t||''); return t===t.toUpperCase()?t.toLowerCase().replace(/(^|[\s(,/-])([a-z])/g,(m,a,b)=>a+b.toUpperCase()):t; }
+function openFoodEditor(id,opts){
+  opts=opts||{};
+  const f=id?DB.foods.find(x=>x.id===id):null;
+  foodEd={id:f?f.id:null,back:opts.back||null,results:[],per100:null,fdcId:f?f.fdcId||null:null};
+  const v=f||{name:opts.name||'',carb:'',prot:'',fat:'',serving:''};
+  openModal(`<div class="sh-head">${foodEd.back?'<button class="sh-back" onclick="foodEdBack()" aria-label="Back">‹</button>':''}<h3>${f?'Edit food':'New food'}</h3></div>
+    <div class="usda-box">
+      <label>Look it up — USDA food database</label>
+      <div class="usda-q"><input id="usdaQ" type="search" enterkeyhint="search" placeholder="e.g. mini cucumber, greek yogurt" value="${esc(opts.name||'')}" autocomplete="off"
+        onkeydown="if(event.key==='Enter'){ event.preventDefault(); usdaSearch(); }"><button class="btn secondary" onclick="usdaSearch()">Search</button></div>
+      <div id="usdaRes"></div><div id="usdaAmt"></div>
     </div>
-    <button class="btn block" onclick="saveFoodEdit('${id}')">Save</button>
-    <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`);
+    <label>Name</label><input id="efName" value="${esc(v.name)}">
+    <label>Serving (optional)</label><input id="efServing" value="${esc(v.serving||'')}" placeholder="e.g. 1 cup, 150 g">
+    <div class="row">
+      <div><label>Carbs (g)</label><input type="number" step="any" inputmode="decimal" id="efCarb" value="${v.carb}" placeholder="0"></div>
+      <div><label>Protein (g)</label><input type="number" step="any" inputmode="decimal" id="efProt" value="${v.prot}" placeholder="0"></div>
+      <div><label>Fat (g)</label><input type="number" step="any" inputmode="decimal" id="efFat" value="${v.fat}" placeholder="0"></div>
+    </div>
+    ${microInputsHtml((f&&f.micros)||{})}
+    <button class="btn block" onclick="saveFoodEditor()">${f?'Save':foodEd.back?'Add & pick it':'Add to library'}</button>
+    ${f?`<button class="btn danger block" style="margin-top:8px;" onclick="closeModal(); delFood('${f.id}')">Delete food</button>`:''}
+    <button class="btn secondary block" style="margin-top:8px;" onclick="${foodEd.back?'foodEdBack()':'closeModal()'}">Cancel</button>`);
 }
-function saveFoodEdit(id){
-  const f=DB.foods.find(x=>x.id===id);
+function microInputsHtml(mi){
+  const n=Object.keys(mi).length;
+  return `<details class="micro-in"${DB.microsOn?'':' hidden'}><summary>Micronutrients (optional)<span id="miCount">${n?` — ${n} filled`:''}</span></summary>
+    ${MICRO_GROUPS.map(g=>{ const ms=MICROS.filter(m=>m.g===g&&!m.macro); return ms.length?`<div class="lab-cat" style="margin:8px 0 6px;">${g}</div><div class="mi-grid">${ms.map(m=>`<div><label>${esc(m.n)} (${m.u})</label>
+      <input type="number" step="any" inputmode="decimal" data-mk="${m.k}" value="${mi[m.k]!=null?mi[m.k]:''}"></div>`).join('')}</div>`:''; }).join('')}
+    <div class="hint">Per serving, like the macros. Leave blank anything the label doesn’t list.</div></details>`;
+}
+function foodEdBack(){ if(foodEd&&foodEd.back==='log') openForm('food'); else closeModal(); }
+function saveFoodEditor(){
   const name=document.getElementById('efName').value.trim();
   if(!name){ toast('Name required'); return; }
-  f.name=name; f.carb=+document.getElementById('efCarb').value||0;
-  f.prot=+document.getElementById('efProt').value||0; f.fat=+document.getElementById('efFat').value||0;
-  save(); closeModal(); renderFood(); toast('Updated');
+  const micros={};
+  document.querySelectorAll('#sheet [data-mk]').forEach(i=>{ if(i.value!=='') micros[i.dataset.mk]=+i.value; });
+  const data={name,serving:document.getElementById('efServing').value.trim(),carb:+document.getElementById('efCarb').value||0,
+    prot:+document.getElementById('efProt').value||0,fat:+document.getElementById('efFat').value||0};
+  let f=foodEd.id?DB.foods.find(x=>x.id===foodEd.id):null;
+  if(f) Object.assign(f,data); else { f=Object.assign({id:uid()},data); DB.foods.push(f); }
+  if(Object.keys(micros).length) f.micros=micros; else delete f.micros;
+  if(!f.serving) delete f.serving;
+  if(foodEd.fdcId) f.fdcId=foodEd.fdcId;
+  save();
+  if(foodEd.back==='log'){ setFoodMode('lib'); openForm('food'); comboFood.setSelection(f.id); toast(`Added "${name}" — set servings and log it`); return; }
+  closeModal(); renderFood(); toast(foodEd.id?'Updated':'Added to library');
 }
-function addFood(){
-  const name=document.getElementById('fName').value.trim();
-  if(!name){ toast('Name required'); return; }
-  DB.foods.push({id:uid(),name,carb:+document.getElementById('fCarb').value||0,prot:+document.getElementById('fProt').value||0,fat:+document.getElementById('fFat').value||0});
-  save(); document.getElementById('fName').value='';
-  ['fCarb','fProt','fFat'].forEach(i=>document.getElementById(i).value=0);
-  renderFood(); toast('Added to library');
+async function usdaSearch(){
+  const q=document.getElementById('usdaQ').value.trim(), el=document.getElementById('usdaRes');
+  if(!q){ toast('Type a food to search'); return; }
+  document.getElementById('usdaQ').blur();
+  el.innerHTML='<div class="hint" style="margin:8px 0 0;">Searching USDA…</div>';
+  const key=(DB.usdaKey||'').trim()||'DEMO_KEY';
+  try{
+    const r=await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(key)}&query=${encodeURIComponent(q)}&pageSize=15&dataType=${encodeURIComponent('Foundation,SR Legacy,Survey (FNDDS),Branded')}`);
+    if(r.status===429) throw new Error(key==='DEMO_KEY'?'The shared USDA key is out of searches for now — add your own free key in More → Micronutrients.':'Too many searches — try again in a bit.');
+    if(r.status===403) throw new Error('USDA didn’t accept the API key — check it in More → Micronutrients.');
+    if(!r.ok) throw new Error('USDA search failed ('+r.status+')');
+    const j=await r.json();
+    foodEd.results=j.foods||[];
+    const src=f=>f.dataType==='Branded'?titleCase(f.brandName||f.brandOwner||'Branded'):f.dataType==='Survey (FNDDS)'?'Generic · survey':'Generic';
+    const kcal=f=>{ const e=(f.foodNutrients||[]).find(n=>String(n.nutrientNumber)==='208'); return e?` · ${Math.round(e.value)} kcal/100 g`:''; };
+    el.innerHTML=foodEd.results.length?`<div class="usda-list">${foodEd.results.map((f,i)=>`<button class="usda-item" onclick="usdaPick(${i})"><b>${esc(titleCase(f.description))}</b><span>${esc(src(f))}${kcal(f)}</span></button>`).join('')}</div>`
+      :'<div class="hint" style="margin:8px 0 0;">No matches — try fewer or simpler words.</div>';
+  }catch(e){
+    el.innerHTML=`<div class="hint" style="margin:8px 0 0; color:var(--accent2);">${esc(e instanceof TypeError?'Couldn’t reach USDA — check your connection.':e.message)}</div>`;
+  }
 }
+function usdaParse(f){
+  const by={};
+  (f.foodNutrients||[]).forEach(n=>{ if(n.value!=null&&n.nutrientNumber) by[String(n.nutrientNumber)]=+n.value; });
+  const out={carb:by['205']!=null?by['205']:by['205.2']||0,prot:by['203']||0,fat:by['204']||0,micros:{}};
+  MICROS.forEach(m=>(m.usda||[]).some(num=>{ if(by[num]==null) return false; out.micros[m.k]=by[num]*((m.conv||{})[num]||1); return true; }));
+  MICROS.filter(m=>m.sum).forEach(m=>{ const p=m.sum.filter(k=>out.micros[k]!=null); if(p.length) out.micros[m.k]=p.reduce((a,k)=>a+out.micros[k],0); });
+  return out;
+}
+function usdaPick(i){
+  const f=foodEd.results[i]; if(!f) return;
+  foodEd.per100=usdaParse(f); foodEd.fdcId=f.fdcId||null;
+  const grams=/^(g|grm|ml|mlt)$/i.test(f.servingSizeUnit||'')&&f.servingSize?+f.servingSize:100;
+  foodEd.hh=f.householdServingFullText||'';
+  document.getElementById('efName').value=titleCase(f.description)+(f.brandName?` (${titleCase(f.brandName)})`:'');
+  document.getElementById('usdaRes').innerHTML='';
+  document.getElementById('usdaAmt').innerHTML=`<div class="usda-amt"><span>Serving</span>
+      <input type="number" id="usdaG" step="any" inputmode="decimal" value="${Math.round(grams*10)/10}" oninput="usdaApply()"><span>g</span>${foodEd.hh?`<small>label says ${esc(foodEd.hh)} = ${Math.round(grams)} g</small>`:''}</div>
+    <div class="hint" style="margin:0;">Filled in from USDA, scaled to this serving. Worth a glance against your label.</div>`;
+  usdaApply();
+}
+function usdaApply(){
+  const p=foodEd.per100; if(!p) return;
+  const g=+document.getElementById('usdaG').value||100, k=g/100;
+  const r=v=>{ const x=v*k; return x===0?0:+x.toFixed(Math.abs(x)>=10?1:Math.abs(x)>=1?2:3); };
+  document.getElementById('efCarb').value=r(p.carb); document.getElementById('efProt').value=r(p.prot); document.getElementById('efFat').value=r(p.fat);
+  document.getElementById('efServing').value=`${Math.round(g*10)/10} g`;
+  let n=0;
+  document.querySelectorAll('#sheet [data-mk]').forEach(inp=>{ const v=p.micros[inp.dataset.mk]; inp.value=v!=null?r(v):''; if(v!=null) n++; });
+  const c=document.getElementById('miCount'); if(c) c.textContent=n?` — ${n} filled`:'';
+}
+function editFood(id){ openFoodEditor(id); }
 function delFood(id){ DB.foods=DB.foods.filter(f=>f.id!==id); save(); renderFood(); }
 function logMeal(){
-  const foodId=comboFood.value;
-  if(!foodId){ toast('Pick a food from the list'); return; }
+  let foodId=comboFood.value;
+  if(!foodId&&comboFood.text){
+    const f=DB.foods.find(x=>x.name.toLowerCase()===comboFood.text.toLowerCase());
+    if(f) foodId=f.id; else { openFoodEditor(null,{name:comboFood.text,back:'log'}); return; }
+  }
+  if(!foodId){ toast('Pick a food, or type a new one'); return; }
   DB.meals.push({id:uid(),date:curDay(),time:nowHM(),foodId,servings:+document.getElementById('logServings').value||1,mealType:document.getElementById('logMealType').value});
   save(); comboFood.clear(); document.getElementById('logServings').value=1;
   renderCurrent(); toast(loggedMsg());
@@ -1362,6 +1549,182 @@ function quickAddMeal(){
   renderCurrent(); toast(loggedMsg());
 }
 function delMeal(id){ DB.meals=DB.meals.filter(m=>m.id!==id); save(); renderFood(); }
+
+/* ============ micronutrients ============
+   Nutrients, grouping and default daily targets follow Cronometer's summary screen.
+   d = indent level, max = a limit to stay under, macro = comes from the macro tracker,
+   sum = total of its parts when a food only lists the parts, usda = FoodData Central nutrient numbers. */
+const MICRO_GROUPS=['General','Vitamins','Minerals','Carbohydrates','Lipids','Protein'];
+const MICROS=[
+  {k:'energy',n:'Energy',u:'kcal',g:'General',macro:'cal'},
+  {k:'alcohol',n:'Alcohol',u:'g',g:'General',usda:['221']},
+  {k:'caffeine',n:'Caffeine',u:'mg',g:'General',usda:['262']},
+  {k:'oxalate',n:'Oxalate',u:'mg',g:'General'},
+  {k:'phytate',n:'Phytate',u:'mg',g:'General'},
+  {k:'water',n:'Water',u:'g',g:'General',t:3300,usda:['255']},
+  {k:'b1',n:'B1 (Thiamine)',u:'mg',g:'Vitamins',t:1.2,usda:['404']},
+  {k:'b2',n:'B2 (Riboflavin)',u:'mg',g:'Vitamins',t:1.3,usda:['405']},
+  {k:'b3',n:'B3 (Niacin)',u:'mg',g:'Vitamins',t:16,usda:['406']},
+  {k:'b5',n:'B5 (Pantothenic Acid)',u:'mg',g:'Vitamins',t:5,usda:['410']},
+  {k:'b6',n:'B6 (Pyridoxine)',u:'mg',g:'Vitamins',t:1.3,usda:['415']},
+  {k:'b12',n:'B12 (Cobalamin)',u:'µg',g:'Vitamins',t:2.4,usda:['418']},
+  {k:'folate',n:'Folate',u:'µg',g:'Vitamins',t:400,usda:['435','417']},
+  {k:'vita',n:'Vitamin A',u:'µg',g:'Vitamins',t:900,usda:['320']},
+  {k:'vitc',n:'Vitamin C',u:'mg',g:'Vitamins',t:75,usda:['401']},
+  {k:'vitd',n:'Vitamin D',u:'IU',g:'Vitamins',t:600,usda:['324','328'],conv:{'328':40}},
+  {k:'vite',n:'Vitamin E',u:'mg',g:'Vitamins',t:15,usda:['323']},
+  {k:'vitk',n:'Vitamin K',u:'µg',g:'Vitamins',t:75,usda:['430']},
+  {k:'calcium',n:'Calcium',u:'mg',g:'Minerals',t:1300,usda:['301']},
+  {k:'copper',n:'Copper',u:'mg',g:'Minerals',t:0.9,usda:['312']},
+  {k:'iron',n:'Iron',u:'mg',g:'Minerals',t:11,usda:['303']},
+  {k:'magnesium',n:'Magnesium',u:'mg',g:'Minerals',t:410,usda:['304']},
+  {k:'manganese',n:'Manganese',u:'mg',g:'Minerals',t:2.2,usda:['315']},
+  {k:'phosphorus',n:'Phosphorus',u:'mg',g:'Minerals',t:1250,usda:['305']},
+  {k:'potassium',n:'Potassium',u:'mg',g:'Minerals',t:3000,usda:['306']},
+  {k:'selenium',n:'Selenium',u:'µg',g:'Minerals',t:55,usda:['317']},
+  {k:'sodium',n:'Sodium',u:'mg',g:'Minerals',t:1500,usda:['307']},
+  {k:'zinc',n:'Zinc',u:'mg',g:'Minerals',t:11,usda:['309']},
+  {k:'carbs',n:'Carbs (Total)',u:'g',g:'Carbohydrates',macro:'carb'},
+  {k:'fiber',n:'Fiber',u:'g',g:'Carbohydrates',d:1,t:38,usda:['291']},
+  {k:'fiberInsol',n:'Fiber (Insoluble)',u:'g',g:'Carbohydrates',d:2,usda:['297']},
+  {k:'fiberSol',n:'Fiber (Soluble)',u:'g',g:'Carbohydrates',d:2,usda:['295']},
+  {k:'netCarbs',n:'Carbs (Net)',u:'g',g:'Carbohydrates',d:1,macro:'net'},
+  {k:'starch',n:'Starch',u:'g',g:'Carbohydrates',d:1,usda:['209']},
+  {k:'sugars',n:'Sugars',u:'g',g:'Carbohydrates',d:1,usda:['269','269.3']},
+  {k:'addedSugars',n:'Added Sugars',u:'g',g:'Carbohydrates',d:1,t:50,max:true,usda:['539']},
+  {k:'fat',n:'Fat',u:'g',g:'Lipids',macro:'fat'},
+  {k:'mono',n:'Fat (Monounsaturated)',u:'g',g:'Lipids',d:1,usda:['645']},
+  {k:'poly',n:'Fat (Polyunsaturated)',u:'g',g:'Lipids',d:1,usda:['646']},
+  {k:'omega3',n:'Omega-3',u:'g',g:'Lipids',d:2,t:1.6,sum:['ala','dha','epa']},
+  {k:'ala',n:'Omega-3 (ALA)',u:'g',g:'Lipids',d:3,usda:['851','619']},
+  {k:'dha',n:'Omega-3 (DHA)',u:'g',g:'Lipids',d:3,usda:['621']},
+  {k:'epa',n:'Omega-3 (EPA)',u:'g',g:'Lipids',d:3,usda:['629']},
+  {k:'omega6',n:'Omega-6',u:'g',g:'Lipids',d:2,t:16,sum:['aa','la']},
+  {k:'aa',n:'Omega-6 (AA)',u:'g',g:'Lipids',d:3,usda:['855','620']},
+  {k:'la',n:'Omega-6 (LA)',u:'g',g:'Lipids',d:3,usda:['675','618']},
+  {k:'sat',n:'Fat (Saturated)',u:'g',g:'Lipids',d:1,usda:['606']},
+  {k:'trans',n:'Fat (Trans)',u:'g',g:'Lipids',d:1,usda:['605']},
+  {k:'cholesterol',n:'Cholesterol',u:'mg',g:'Lipids',usda:['601']},
+  {k:'protein',n:'Protein',u:'g',g:'Protein',macro:'prot'},
+  {k:'cystine',n:'Cystine',u:'g',g:'Protein',d:1,t:0.7,usda:['507']},
+  {k:'histidine',n:'Histidine',u:'g',g:'Protein',d:1,t:1.0,usda:['512']},
+  {k:'isoleucine',n:'Isoleucine',u:'g',g:'Protein',d:1,t:1.4,usda:['503']},
+  {k:'leucine',n:'Leucine',u:'g',g:'Protein',d:1,t:3.2,usda:['504']},
+  {k:'lysine',n:'Lysine',u:'g',g:'Protein',d:1,t:2.9,usda:['505']},
+  {k:'methionine',n:'Methionine',u:'g',g:'Protein',d:1,t:0.7,usda:['506']},
+  {k:'phenylalanine',n:'Phenylalanine',u:'g',g:'Protein',d:1,t:1.3,usda:['508']},
+  {k:'threonine',n:'Threonine',u:'g',g:'Protein',d:1,t:1.5,usda:['502']},
+  {k:'tryptophan',n:'Tryptophan',u:'g',g:'Protein',d:1,t:0.4,usda:['501']},
+  {k:'tyrosine',n:'Tyrosine',u:'g',g:'Protein',d:1,t:1.3,usda:['509']},
+  {k:'valine',n:'Valine',u:'g',g:'Protein',d:1,t:1.8,usda:['510']},
+];
+const MICRO_BY=Object.fromEntries(MICROS.map(m=>[m.k,m]));
+const MICRO_HI_DEFAULT=['fiber','vitc','iron','b12','calcium','folate','vita','potassium','magnesium','vitd'];
+let microFull=false, microHiOpen=false;
+function fmtN(v){ const a=Math.abs(v); return a>=100?String(Math.round(v)):a>=1||a===0?String(+v.toFixed(1)):String(+v.toFixed(2)); }
+function microHiKeys(){ return (DB.microHi||MICRO_HI_DEFAULT).filter(k=>MICRO_BY[k]&&!MICRO_BY[k].macro); }
+function foodMicro(f,m){
+  const mi=f.micros||{};
+  if(mi[m.k]!=null) return +mi[m.k];
+  if(m.sum){ const p=m.sum.filter(k=>mi[k]!=null); if(p.length) return p.reduce((a,k)=>a+ +mi[k],0); }
+  return null;
+}
+function microGoal(m){
+  if(m.macro){
+    const T=DB.targets||{};
+    const t=m.macro==='cal'?Math.round((T.carb||0)*4+(T.prot||0)*4+(T.fat||0)*9):m.macro==='net'?T.carb:T[m.macro];
+    return {t:t||null,max:false};
+  }
+  const o=(DB.microGoals||{})[m.k];
+  return o?{t:o.t,max:!!o.max}:{t:m.t||null,max:!!m.max};
+}
+/* totals for a day; st: 'none' = no logged food has data, 'part' = some foods are missing it, 'full' */
+function microsForDay(date){
+  const meals=DB.meals.filter(m=>m.date===date), mac=macrosForDay(date), out={};
+  MICROS.forEach(m=>{
+    if(m.macro) return;
+    let v=0,c=0;
+    meals.forEach(ml=>{ const f=ml.foodId&&DB.foods.find(x=>x.id===ml.foodId), fv=f?foodMicro(f,m):null; if(fv!=null){ v+=fv*(ml.servings||1); c++; } });
+    out[m.k]={v,st:c===0?'none':c<meals.length?'part':'full'};
+  });
+  const fib=out.fiber.st==='none'?0:out.fiber.v;
+  MICROS.filter(m=>m.macro).forEach(m=>{ out[m.k]={v:m.macro==='net'?Math.max(0,mac.carb-fib):mac[m.macro],st:meals.length?'full':'none'}; });
+  return out;
+}
+function mbar(p,max){ return `<div class="mbar${max&&p>100?' over':''}${!max&&p>=100?' full':''}"><div style="width:${Math.min(100,Math.max(0,p))}%"></div></div>`; }
+function microRow(m,x){
+  const g=microGoal(m), cls=`mrow d${m.d||0}${x.st==='part'?' part':''}${m.macro?'':' tap'}`, click=m.macro?'':` onclick="editMicroGoal('${m.k}')"`;
+  if(x.st==='none') return `<div class="${cls}${g.t?'':' nt'}"${click}><div class="mr-top"><span><b>${esc(m.n)}</b> <span class="muted">- No Data</span></span><span class="muted num">${g.t?'0%':'0 '+m.u}</span></div>${g.t?mbar(0):''}</div>`;
+  if(!g.t) return `<div class="${cls} nt"${click}><div class="mr-top"><span><b>${esc(m.n)}</b></span><span class="num">${fmtN(x.v)} ${m.u}</span></div></div>`;
+  const p=x.v/g.t*100;
+  return `<div class="${cls}"${click}><div class="mr-top"><span><b>${esc(m.n)}</b> - <span class="num">${fmtN(x.v)} / ${fmtN(g.t)} ${m.u}</span>${g.max?' <span class="muted">max</span>':''}</span><span class="num">${Math.round(p)}%</span></div>${mbar(p,g.max)}</div>`;
+}
+function renderMicros(){
+  const el=document.getElementById('microCard'), ti=document.getElementById('microTitle'); if(!el) return;
+  const on=!!DB.microsOn;
+  el.classList.toggle('mhide',!on); ti.classList.toggle('mhide',!on);
+  if(!on) return;
+  const day=microsForDay(curDay());
+  let h=`<div class="sub-l" style="margin:0 0 8px;">Highlighted targets</div><div class="mgrid">${microHiKeys().map(k=>{
+    const m=MICRO_BY[k], x=day[k], g=microGoal(m), p=g.t?x.v/g.t*100:0;
+    return `<div class="mh${x.st==='part'?' part':''}${x.st==='none'?' nodata':''}" onclick="editMicroGoal('${k}')">
+      <div class="mh-top"><span>${esc(m.n)}</span><span class="num">${g.t?Math.round(p)+'%':fmtN(x.v)+' '+m.u}</span></div>${mbar(p,g.max)}</div>`;
+  }).join('')}</div>
+    <button class="more-btn" onclick="microFull=!microFull; renderMicros()">${microFull?'Hide complete nutrient summary':'Complete nutrient summary'}</button>`;
+  if(microFull) h+=MICRO_GROUPS.map(gr=>`<div class="mgroup">${gr}</div>`+MICROS.filter(m=>m.g===gr).map(m=>microRow(m,day[m.k])).join('')).join('')
+    +`<div class="hint" style="margin:10px 0 0;"><span style="color:var(--teal)">Teal</span> = some of ${dayWord()}’s foods have no data for it. Tap a nutrient to change its target or highlight it. Energy, carbs, fat and protein use your macro targets.</div>`;
+  el.innerHTML=h;
+}
+function editMicroGoal(k){
+  if(VIEWER) return;
+  const m=MICRO_BY[k]; if(!m||m.macro) return;
+  const g=microGoal(m), hi=microHiKeys().includes(k), custom=!!(DB.microGoals||{})[k];
+  openModal(`<h3>${esc(m.n)}</h3>
+    <div class="hint">${m.t?`Recommended: ${fmtN(m.t)} ${m.u}${m.max?' or less':''} a day.`:'No standard daily target — set your own if you track it.'}</div>
+    <label>Your daily target (${m.u}) — leave empty for none</label>
+    <input type="number" id="mgT" step="any" inputmode="decimal" value="${g.t!=null?g.t:''}">
+    <label class="refbox" style="font-size:13px; margin-bottom:10px;"><input type="checkbox" id="mgMax" ${g.max?'checked':''}> It’s a limit — stay under it</label>
+    <label class="refbox" style="font-size:13px; margin-bottom:14px;"><input type="checkbox" id="mgHi" ${hi?'checked':''}> Highlight on the Food tab (up to 10)</label>
+    <button class="btn block" onclick="saveMicroGoal('${k}')">Save</button>
+    ${custom?`<button class="btn secondary block" style="margin-top:8px;" onclick="saveMicroGoal('${k}',true)">Reset to recommended</button>`:''}
+    <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`);
+}
+function setMicroHi(k,on){
+  let hi=microHiKeys().slice(); const has=hi.includes(k);
+  if(on&&!has){ if(hi.length>=10){ toast('You can highlight up to 10 — remove one first'); return false; } hi.push(k); }
+  if(!on&&has) hi=hi.filter(x=>x!==k);
+  DB.microHi=hi; return true;
+}
+function saveMicroGoal(k,reset){
+  const m=MICRO_BY[k], goals=Object.assign({},DB.microGoals);
+  if(reset) delete goals[k];
+  else{
+    if(!setMicroHi(k,document.getElementById('mgHi').checked)) return;
+    const raw=document.getElementById('mgT').value, t=raw===''?null:+raw;
+    goals[k]={t:t>0?t:null,max:document.getElementById('mgMax').checked};
+    if(goals[k].t===(m.t||null)&&goals[k].max===!!m.max) delete goals[k];
+  }
+  DB.microGoals=goals; save(); closeModal(); renderCurrent(); toast(reset?'Back to the recommended target':'Saved');
+}
+function toggleMicroHi(k){ if(setMicroHi(k,!microHiKeys().includes(k))){ save(); renderMicroSettings(); } }
+function resetMicroGoals(){
+  askConfirm('Reset every micronutrient target to the recommended value?','Reset',()=>{ DB.microGoals={}; save(); renderMicroSettings(); toast('Targets reset'); });
+}
+function renderMicroSettings(){
+  const el=document.getElementById('microSettings'); if(!el) return;
+  const hi=microHiKeys(), n=Object.keys(DB.microGoals||{}).length;
+  el.innerHTML=`<label class="refbox" style="font-size:13.5px; color:var(--text); margin-bottom:12px; white-space:normal;"><input type="checkbox" ${DB.microsOn?'checked':''}
+      onchange="DB.microsOn=this.checked; save(); renderMicroSettings()"> Show micronutrients on the Food tab</label>
+    <details ${microHiOpen?'open':''} ontoggle="microHiOpen=this.open" style="margin-bottom:6px;"><summary>Highlighted targets (${hi.length}/10) — tap to add or remove</summary>
+      <div style="margin-bottom:6px;">${MICROS.filter(m=>!m.macro).map(m=>`<button class="chip sm${hi.includes(m.k)?' on':''}" style="margin-bottom:5px;" onclick="toggleMicroHi('${m.k}')">${esc(m.n)}</button>`).join('')}</div></details>
+    <div class="hint">To change a target, tap it in Food → Micronutrients → Complete nutrient summary.${n?` You’ve customised ${n}.`:''}</div>
+    ${n?`<button class="btn secondary block" style="margin-bottom:12px;" onclick="resetMicroGoals()">Reset all targets to recommended</button>`:''}
+    <label>USDA API key (optional)</label>
+    <input id="usdaKeyIn" value="${esc(DB.usdaKey||'')}" placeholder="Empty = shared DEMO_KEY" autocomplete="off" autocapitalize="off" spellcheck="false"
+      onchange="DB.usdaKey=this.value.trim(); save(); toast('Saved')">
+    <div class="hint" style="margin:0;">Food lookups use USDA FoodData Central. The shared demo key allows about 30 searches an hour; a free personal key allows 1,000.
+      Get one at <a href="https://fdc.nal.usda.gov/api-key-signup" target="_blank" rel="noopener" style="color:var(--accent);">fdc.nal.usda.gov/api-key-signup</a>.</div>`;
+}
 
 /* ============ lifts ============ */
 let comboLift, chartMetric='top';
@@ -1478,6 +1841,7 @@ function applySynced(data){
   stamp(true);
   try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){}
   if(JSON.stringify(DB)===before) return;
+  loadChartPrefs();
   applyTheme();
   const a=document.activeElement, typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName);
   if(!typing&&!document.getElementById('modal').classList.contains('open')){ renderCurrent(); renderSession(); }
@@ -1559,8 +1923,8 @@ window.addEventListener('online',()=>{ if(SYNC) syncNow(); });
    ever holds ciphertext and only people with the link can read it. */
 const SHARE_DIR='shared';
 const SHARE_CATS=[['exercise','Exercise'],['food','Food'],['meds','Meds'],['bloodwork','Bloodwork'],['health','Health — weight, BP, sleep']];
-const SHARE_KEYS={exercise:['exercises','sets','cardio','plans','rpeExercises','sbd'],food:['foods','meals','targets'],
-  meds:['medSchedule','medLog','medPresets','doses'],bloodwork:['labs','labResults'],health:['bodyweight','bp','bpRef','sleep']};
+const SHARE_KEYS={exercise:['exercises','sets','cardio','plans','rpeExercises','sbd'],food:['foods','meals','targets','microsOn','microGoals','microHi'],
+  meds:['medSchedule','medLog','medPresets','doses','cycles'],bloodwork:['labs','labResults'],health:['bodyweight','bp','bpRef','sleep','naps']};
 const SHARE_HASH_KEY='physio_share_hash';
 let shareTimer=null, shareBusy=false, shareAgain=false, shareSha=null, shareErr='', shareLast=null;
 function bytesB64(b){ let s=''; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); }
@@ -2105,22 +2469,33 @@ const QI={
   bw:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 10a4.5 4.5 0 0 1 7 0"/><path d="m12 10 1.6-1.8"/>',
   bp:'<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
   sleep:'<path d="M19.5 14.5A7.5 7.5 0 1 1 9.5 4.5a6 6 0 0 0 10 10z"/>',
+  nap:'<path d="M16.5 15.5A6 6 0 1 1 9 7.5a4.8 4.8 0 0 0 7.5 8z"/><path d="M15 3.5h4.5l-4.5 4.5h4.5"/>',
+  note:'<path d="M5 19.5h3.5L19 9l-3.5-3.5L5 16z"/><path d="m13.5 7.5 3.5 3.5"/>',
 };
 const QA=[
   {k:'lift',f:'fLift',t:'Log a set',s:'Weight × reps, with last session shown'},
   {k:'food',f:'fFood',t:'Log food',s:'From your library or quick macros'},
   {k:'cardio',f:'fCardio',t:'Cardio',s:'Activity and minutes'},
   {k:'bw',f:'fBw',t:'Bodyweight',daily:()=>DB.bodyweight.some(b=>b.date===curDay())},
-  {k:'bp',f:'fBp',t:'Blood pressure',multi:()=>DB.bp.filter(b=>b.date===curDay()).length},
+  {k:'bp',f:'fBp',t:'Blood pressure',multi:()=>DB.bp.filter(b=>b.date===curDay()).length,word:'reading',nag:true},
   {k:'sleep',f:'fSleep',t:'Sleep',daily:()=>DB.sleep.some(s=>s.date===curDay())},
+  {k:'nap',f:'fNap',t:'Nap',s:'Start and end time',multi:()=>DB.naps.filter(n=>n.date===curDay()).length,word:'nap'},
+  {k:'note',t:'Journal',s:()=>noteFor(curDay())?'Edit your note for '+dayWord():'Notes about your day',fn:'editNote()'},
 ];
 const qIcon=k=>`<span class="qi"><svg viewBox="0 0 24 24">${QI[k]}</svg></span>`;
+function qaSub(q){
+  if(q.multi){
+    const n=q.multi();
+    if(n) return `<small>${n} ${q.word}${n>1?'s':''} ${dayWord()} — add another</small>`;
+    return q.nag?`<small class="due">Not logged ${dayWord()} yet</small>`:`<small>${q.s}</small>`;
+  }
+  if(q.daily) return `<small class="due">Not logged ${dayWord()} yet</small>`;
+  return `<small>${typeof q.s==='function'?q.s():q.s}</small>`;
+}
 function openAdd(){
   const done=QA.filter(q=>q.daily&&q.daily()), todo=QA.filter(q=>!(q.daily&&q.daily()));
   openModal(`<h3>${isToday()?'Add':'Add to '+dayLabel()}</h3>
-    ${todo.map(q=>`<button class="qa" onclick="openForm('${q.k}')">${qIcon(q.k)}<span><b>${q.t}</b>
-      ${q.multi?(q.multi()?`<small>${q.multi()} reading${q.multi()>1?'s':''} ${dayWord()} — add another</small>`:`<small class="due">Not logged ${dayWord()} yet</small>`)
-        :q.daily?`<small class="due">Not logged ${dayWord()} yet</small>`:`<small>${q.s}</small>`}</span></button>`).join('')}
+    ${todo.map(q=>`<button class="qa" onclick="${q.fn||`openForm('${q.k}')`}">${qIcon(q.k)}<span><b>${q.t}</b>${qaSub(q)}</span></button>`).join('')}
     ${done.length?`<div class="qa-done">Already logged ${dayWord()} — tap to redo:<br>${done.map(q=>`<button class="chip sm" onclick="openForm('${q.k}')">✓ ${q.t}</button>`).join('')}</div>`:''}`);
 }
 function ensureForms(){ if(!comboLift||!comboFood||!comboCardio){ renderFood(); renderLifts(); } }
@@ -2133,6 +2508,7 @@ function openForm(k){
   renderHeader();
   if(k==='lift'){ syncRpeToggle(); renderLogHint(); renderSheetLiftChart(); }
   if(k==='sleep') prepSleepForm();
+  if(k==='nap') prepNapForm();
   if(k==='bp') document.getElementById('bpTime').value=nowHM();
   const first={bw:'bwInput',bp:'bpSys'}[k]; if(first) document.getElementById(first).focus();
 }
@@ -2210,7 +2586,7 @@ function renderPlans(){
   document.getElementById('startSessionBtn').textContent=DB.session?'Resume session':'Start session';
   document.getElementById('planList').innerHTML=(DB.plans.length?DB.plans.map(p=>`
     <div class="listrow"><div style="min-width:0;"><div class="r-title">${esc(p.name)}</div>
-      <div class="r-sub ell">${p.items.map(i=>`${esc(exName(i.exId))} ${i.sets}×${i.reps}`).join(', ')||'no exercises'}</div></div>
+      <div class="r-sub ell">${p.items.map(i=>`${esc(exName(i.exId))} ${i.sets}×${i.reps}${i.rpe?' @'+i.rpe:''}`).join(', ')||'no exercises'}</div></div>
       <div class="r-val" style="display:flex; align-items:center;"><button class="del" style="color:var(--accent)" onclick="openPlanEditor('${p.id}')">edit</button>
         <button class="chip sm on" style="margin:0 0 0 4px;" onclick="startSession('${p.id}')">Start</button></div></div>`).join('')
     :'<div class="hint">Make a plan (bench day, push, upper…) with the exercises, sets and reps you want. Then hit Start session.</div>')
@@ -2231,19 +2607,23 @@ function renderPlanEditor(){
     <label>Name</label>
     <input id="peName" value="${esc(p.name)}" placeholder="e.g. Push day" oninput="planEdit.name=this.value">
     <div style="margin:-4px 0 8px;">${PLAN_NAMES.map(n=>`<button class="chip sm" style="margin-bottom:5px;" onclick="planEdit.name='${n}'; document.getElementById('peName').value='${n}'">${n}</button>`).join('')}</div>
-    <label>Exercises — sets × reps</label>
+    <label>Exercises — sets × reps, with an optional RPE target</label>
     ${p.items.length?p.items.map((it,i)=>`<div class="plan-row"><span class="pr-name">${esc(exName(it.exId))}</span>
-        <input type="number" inputmode="numeric" value="${it.sets}" onchange="planEdit.items[${i}].sets=Math.max(1,+this.value||1)">
-        <span class="muted">×</span>
-        <input type="number" inputmode="numeric" value="${it.reps}" onchange="planEdit.items[${i}].reps=Math.max(1,+this.value||1)">
         <button class="pr-btn" onclick="movePlanItem(${i})" ${i===0?'disabled':''} aria-label="Move up">↑</button>
-        <button class="pr-btn x" onclick="planEdit.items.splice(${i},1); renderPlanEditor()" aria-label="Remove">×</button></div>`).join('')
+        <button class="pr-btn x" onclick="planEdit.items.splice(${i},1); renderPlanEditor()" aria-label="Remove">×</button>
+        <div class="pr-nums">
+          <input type="number" inputmode="numeric" value="${it.sets}" onchange="planEdit.items[${i}].sets=Math.max(1,+this.value||1)">
+          <span class="muted">sets ×</span>
+          <input type="number" inputmode="numeric" value="${it.reps}" onchange="planEdit.items[${i}].reps=Math.max(1,+this.value||1)">
+          <span class="muted">reps @ RPE</span>
+          <input type="number" inputmode="decimal" step="0.5" placeholder="—" value="${it.rpe||''}" onchange="planEdit.items[${i}].rpe=cleanRpe(this.value)"></div></div>`).join('')
       :'<div class="hint">No exercises yet — add one below.</div>'}
     <div style="margin-top:10px;">
       <div class="combo" id="peCombo"></div>
       <div class="row" style="align-items:flex-end;">
         <div><label>Sets</label><input type="number" id="peSets" inputmode="numeric" value="${p.addSets}"></div>
         <div><label>Reps</label><input type="number" id="peReps" inputmode="numeric" value="${p.addReps}"></div>
+        <div><label>RPE (opt.)</label><input type="number" id="peRpe" inputmode="decimal" step="0.5" placeholder="—"></div>
         <div><button class="btn secondary block" style="margin-bottom:10px;" onclick="addPlanItem()">Add</button></div>
       </div>
     </div>
@@ -2270,9 +2650,11 @@ function addPlanItem(){
   if(!exId){ toast('Pick or type an exercise'); return; }
   planEdit.addSets=Math.max(1,+document.getElementById('peSets').value||3);
   planEdit.addReps=Math.max(1,+document.getElementById('peReps').value||5);
-  planEdit.items.push({exId,sets:planEdit.addSets,reps:planEdit.addReps});
+  const rpe=cleanRpe(document.getElementById('peRpe').value);
+  planEdit.items.push(Object.assign({exId,sets:planEdit.addSets,reps:planEdit.addReps},rpe?{rpe}:{}));
   renderPlanEditor();
 }
+function cleanRpe(v){ const n=+v; return v!==''&&n>=5&&n<=10?Math.round(n*2)/2:null; }
 function movePlanItem(i){ if(i<1) return; const a=planEdit.items; [a[i-1],a[i]]=[a[i],a[i-1]]; renderPlanEditor(); }
 function savePlan(){
   const p=planEdit;
@@ -2294,7 +2676,7 @@ function openSessionMenu(){
   if(DB.session){ showSession(); return; }
   openModal(`<h3>Start session</h3>
     ${DB.plans.length?DB.plans.map(p=>`<button class="plan-pick" onclick="startSession('${p.id}')"><b>${esc(p.name)}</b>
-      <span>${p.items.map(i=>`${esc(exName(i.exId))} ${i.sets}×${i.reps}`).join(' · ')}</span></button>`).join('')
+      <span>${p.items.map(i=>`${esc(exName(i.exId))} ${i.sets}×${i.reps}${i.rpe?' @'+i.rpe:''}`).join(' · ')}</span></button>`).join('')
       :'<div class="empty">No plans yet — make one first.</div>'}
     <button class="btn secondary block" style="margin-top:4px;" onclick="openPlanEditor()">+ New plan</button>
     <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`);
@@ -2305,7 +2687,7 @@ function startSession(planId){
   if(DB.session){ askConfirm('Finish the current session and start this one?','Finish & start',()=>{ finishSession(true,true); startSession(planId); }); return; }
   DB.session={planId,name:p.name,date:curDay(),startedAt:Date.now(),rest:p.rest||120,cur:0,
     phase:'idle',workStart:0,restEnd:0,pending:false,alerted:false,hidden:false,
-    items:p.items.map(i=>({exId:i.exId,sets:i.sets,reps:i.reps,done:[],skipped:false}))};
+    items:p.items.map(i=>({exId:i.exId,sets:i.sets,reps:i.reps,rpe:i.rpe||null,done:[],skipped:false}))};
   save(); closeModal(); unlockAudio(); renderSession();
 }
 let sxCombo=null;
@@ -2316,6 +2698,7 @@ function openSxAdd(){
     <div class="row">
       <div><label>Sets</label><input type="number" id="sxAddSets" inputmode="numeric" value="3"></div>
       <div><label>Reps</label><input type="number" id="sxAddReps" inputmode="numeric" value="8"></div>
+      <div><label>RPE (opt.)</label><input type="number" id="sxAddRpe" inputmode="decimal" step="0.5" placeholder="—"></div>
     </div>
     ${plan?`<label class="refbox" style="margin-bottom:12px; font-size:13px;"><input type="checkbox" id="sxAddPlan"> Also add to the ${esc(plan.name)} plan</label>`:''}
     <button class="btn block" onclick="sxAddEx()">Add to session</button>
@@ -2328,10 +2711,11 @@ function sxAddEx(){
   if(!exId){ toast('Pick or type an exercise'); return; }
   const S=DB.session, sets=Math.max(1,+document.getElementById('sxAddSets').value||3), reps=Math.max(1,+document.getElementById('sxAddReps').value||8);
   const cur=S.items[S.cur], curFinished=!cur||cur.skipped||cur.done.length>=cur.sets;
-  S.items.push({exId,sets,reps,done:[],skipped:false});
+  const rpe=cleanRpe(document.getElementById('sxAddRpe').value);
+  S.items.push({exId,sets,reps,rpe,done:[],skipped:false});
   if(curFinished&&!S.pending) S.cur=S.items.length-1;
   const cb=document.getElementById('sxAddPlan');
-  if(cb&&cb.checked){ const plan=DB.plans.find(p=>p.id===S.planId); if(plan) plan.items.push({exId,sets,reps}); }
+  if(cb&&cb.checked){ const plan=DB.plans.find(p=>p.id===S.planId); if(plan) plan.items.push(Object.assign({exId,sets,reps},rpe?{rpe}:{})); }
   save(); closeModal(); renderSession(); toast(`${exName(exId)} added`);
 }
 function sxItem(){ return DB.session.items[DB.session.cur]; }
@@ -2360,7 +2744,7 @@ function renderSession(){
     const ref=(prev&&prev.sets[done.length])||done[done.length-1]||(prev&&prev.sets[prev.sets.length-1]);
     h+=`<div class="card">
       <div class="sx-ex">${esc(exName(it.exId))}</div>
-      <div class="muted" style="font-size:13px;">Set ${Math.min(setNo,it.sets)} of ${it.sets} · ${it.reps} reps</div>
+      <div class="muted" style="font-size:13px;">Set ${Math.min(setNo,it.sets)} of ${it.sets} · ${it.reps} reps${it.rpe?` @ <span style="color:var(--blue)">RPE ${it.rpe}</span>`:''}</div>
       ${prev?`<div class="sub-l">Last time, ${dayLabel(prev.date)} — outlined set is this one</div><div class="sets">${prev.sets.map((x,i)=>setChip(x,false,i===done.length?'next':'')).join('')}</div>`
         :'<div class="sub-l">First time doing this lift</div>'}
       ${done.length?`<div class="sub-l">This session</div><div class="sets">${done.map((x,i)=>setChip(x,false,cmpSet(x,prev&&prev.sets[i]))).join('')}</div>`:''}
@@ -2369,7 +2753,7 @@ function renderSession(){
         <div class="row">
           <div><label>Weight (${unit()})</label><input type="number" id="sxW" step="any" inputmode="decimal" value="${ref?W(ref.weight):''}"></div>
           <div><label>Reps</label><input type="number" id="sxR" inputmode="numeric" value="${it.reps}"></div>
-          <div><label>RPE (optional)</label><input type="number" id="sxRpe" step="0.5" inputmode="decimal" placeholder="—"></div>
+          <div><label>RPE${it.rpe?' (target '+it.rpe+')':' (optional)'}</label><input type="number" id="sxRpe" step="0.5" inputmode="decimal" placeholder="${it.rpe||'—'}"></div>
         </div>
         <button class="btn secondary block" onclick="saveSxSet()">Save set</button></div>`:''}
       ${S.phase==='work'
@@ -2441,6 +2825,7 @@ function saveSxSet(noRender){
   const set={id:uid(),date:S.date,time:nowHM(),exId:it.exId,weight:w,reps:r,rpe:rpe>=5&&rpe<=10?rpe:null};
   DB.sets.push(set); it.done.push(set.id); S.pending=false;
   let msg=`Saved ${W(w)}×${r}${st&&w>st.best.weight?' — new PR':''}`;
+  if(set.rpe&&it.rpe&&set.rpe!==it.rpe) msg+=` · RPE ${set.rpe} vs target ${it.rpe}`;
   if(st&&w>st.best.weight&&isPro()) confetti(40);
   if(it.done.length>=it.sets){ const nx=sxNextIdx(); if(nx>=0){ S.cur=nx; msg+=` · next: ${exName(S.items[nx].exId)}`; } }
   save(); toast(msg);
@@ -2651,12 +3036,99 @@ function delSet(id){ DB.sets=DB.sets.filter(s=>s.id!==id); save(); renderLifts()
 function setChartMetric(m){ chartMetric=m; renderLogLiftChart(); }
 
 /* ============ body: weight, bp, sleep ============ */
-function renderBody(){ renderBodyweight(); renderBp(); renderSleepChart(); renderSleepHistory(); renderLabs(); }
+function renderBody(){
+  if(!renderBody.lp){
+    renderBody.lp=true;
+    attachLongPress(document.getElementById('bwList'),editBwEntry);
+    attachLongPress(document.getElementById('bpList'),editBpEntry);
+    attachLongPress(document.getElementById('sleepHistoryList'),editSleepEntry);
+  }
+  renderBodyweight(); renderBp(); renderSleepChart(); renderSleepHistory(); renderLabs();
+}
+const fv=id=>document.getElementById(id).value;
+const editBtns=(save,del)=>`<button class="btn block" onclick="${save}">Save</button>
+  <button class="btn danger block" style="margin-top:8px;" onclick="${del}">Delete</button>
+  <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`;
+function editBwEntry(id){
+  const r=DB.bodyweight.find(x=>x.id===id); if(!r||VIEWER) return;
+  openModal(`<h3>Edit bodyweight</h3>
+    <div class="row"><div><label>Date</label><input type="date" id="ebDate" value="${r.date}" max="${todayStr()}"></div>
+      <div><label>Time (optional)</label><input type="time" id="ebTime" value="${r.time||''}"></div></div>
+    <label>Weight (${unit()})</label><input type="number" id="ebW" step="any" inputmode="decimal" value="${W(r.weight)}">
+    ${editBtns(`saveBwEntry('${id}')`,`closeModal(); delBwEntry('${id}')`)}`);
+}
+function saveBwEntry(id){
+  const r=DB.bodyweight.find(x=>x.id===id), date=fv('ebDate'), w=toLb(+fv('ebW'));
+  if(!r||!date||!w){ toast('Enter a date and weight'); return; }
+  const clash=DB.bodyweight.find(x=>x.id!==id&&x.date===date);
+  if(clash) DB.bodyweight=DB.bodyweight.filter(x=>x!==clash);
+  if(Math.abs(W(r.weight)-(+fv('ebW')))>1e-9) r.weight=w;   // untouched → keep the exact stored value
+  r.date=date; if(fv('ebTime')) r.time=fv('ebTime'); else delete r.time;
+  refreshAutoTargets(); save(); closeModal(); renderCurrent(); toast(clash?'Saved — replaced the other entry on that day':'Saved');
+}
+function editBpEntry(id){
+  const r=DB.bp.find(x=>x.id===id); if(!r||VIEWER) return;
+  openModal(`<h3>Edit reading</h3>
+    <div class="row"><div><label>Date</label><input type="date" id="epDate" value="${r.date}" max="${todayStr()}"></div>
+      <div><label>Time</label><input type="time" id="epTime" value="${r.time||''}"></div></div>
+    <div class="row">
+      <div><label>Systolic</label><input type="number" id="epSys" inputmode="numeric" value="${r.sys}"></div>
+      <div><label>Diastolic</label><input type="number" id="epDia" inputmode="numeric" value="${r.dia}"></div>
+      <div><label>Pulse</label><input type="number" id="epPulse" inputmode="numeric" value="${r.pulse||''}"></div>
+    </div>
+    ${editBtns(`saveBpEntry('${id}')`,`closeModal(); delBp('${id}')`)}`);
+}
+function saveBpEntry(id){
+  const r=DB.bp.find(x=>x.id===id), sys=+fv('epSys'), dia=+fv('epDia');
+  if(!r||!fv('epDate')||!sys||!dia){ toast('Enter a date, systolic and diastolic'); return; }
+  Object.assign(r,{date:fv('epDate'),time:fv('epTime')||r.time,sys,dia,pulse:+fv('epPulse')||null});
+  save(); closeModal(); renderCurrent(); toast('Saved');
+}
+let esQ=3;
+function setEsq(n){
+  esQ=n;
+  document.getElementById('esqRow').innerHTML=SQ.map(q=>`<button class="sq${q.n===n?' on':''}" style="--c:${q.c}" onclick="setEsq(${q.n})"><b>${q.n}</b>${q.l}</button>`).join('');
+}
+function editSleepEntry(key){
+  if(VIEWER) return;
+  const [t,id]=key.split(':');
+  if(t==='n'){
+    const n=DB.naps.find(x=>x.id===id); if(!n) return;
+    openModal(`<h3>Edit nap</h3>
+      <label>Date</label><input type="date" id="enDate" value="${n.date}" max="${todayStr()}">
+      <div class="row"><div><label>Fell asleep</label><input type="time" id="enStart" value="${n.start}"></div>
+        <div><label>Woke up</label><input type="time" id="enEnd" value="${n.end}"></div></div>
+      ${editBtns(`saveNapEntry('${id}')`,`closeModal(); delNap('${id}')`)}`);
+    return;
+  }
+  const s=DB.sleep.find(x=>x.id===id); if(!s) return;
+  openModal(`<h3>Edit sleep</h3>
+    <label>Night of (the day you woke up)</label><input type="date" id="esDate" value="${s.date}" max="${todayStr()}">
+    <div class="row"><div><label>Went to bed</label><input type="time" id="esBed" value="${s.bed}"></div>
+      <div><label>Woke up</label><input type="time" id="esWake" value="${s.wake}"></div></div>
+    <label>How did you sleep?</label><div class="sq-row" id="esqRow"></div>
+    ${editBtns(`saveSleepEntry('${id}')`,`closeModal(); delSleep('${id}')`)}`);
+  setEsq(s.quality||3);
+}
+function saveSleepEntry(id){
+  const s=DB.sleep.find(x=>x.id===id), date=fv('esDate'), bed=fv('esBed'), wake=fv('esWake');
+  if(!s||!date||!bed||!wake){ toast('Enter a date and both times'); return; }
+  const clash=DB.sleep.find(x=>x.id!==id&&x.date===date);
+  if(clash) DB.sleep=DB.sleep.filter(x=>x!==clash);
+  Object.assign(s,{date,bed,wake,hours:round1(sleepHours(bed,wake)),quality:esQ});
+  save(); closeModal(); renderCurrent(); toast(clash?'Saved — replaced the other night on that day':'Saved');
+}
+function saveNapEntry(id){
+  const n=DB.naps.find(x=>x.id===id), start=fv('enStart'), end=fv('enEnd');
+  if(!n||!fv('enDate')||!start||!end){ toast('Enter a date and both times'); return; }
+  Object.assign(n,{date:fv('enDate'),start,end,hours:Math.round(sleepHours(start,end)*100)/100});
+  save(); closeModal(); renderCurrent(); toast('Saved');
+}
 function logBodyweight(){
   const w=toLb(+document.getElementById('bwInput').value);
   if(!w){ toast('Enter a weight'); return; }
   DB.bodyweight=DB.bodyweight.filter(b=>b.date!==curDay());
-  DB.bodyweight.push({id:uid(),date:curDay(),weight:w}); refreshAutoTargets(); save();
+  DB.bodyweight.push(Object.assign({id:uid(),date:curDay(),weight:w},isToday()?{time:nowHM()}:{})); refreshAutoTargets(); save();
   document.getElementById('bwInput').value='';
   closeModal(); renderCurrent(); toast(isToday()?'Bodyweight logged':'Logged to '+dayLabel());
 }
@@ -2677,8 +3149,8 @@ function renderBodyweight(){
     <div class="stat-sub">${dayLabel(latest.date)}${trend}${bwGoalText(latest.weight)}</div>`;
   const st=chartState.bw, inRange=all.filter(p=>p.date>=rangeCutoff(st.range));
   wrap.innerHTML=ctrlBar('bw')+svgChart([{points:inRange,color:cssVar('--accent','#D9A441'),type:'line'}],{refs:(st.refs?hiLoRefs(inRange):[]).concat(goalRef(DB.goals.bw)),unit:unit()});
-  document.getElementById('bwList').innerHTML=seeMore('bw',rows.slice().reverse().map(r=>`
-    <div class="listrow"><span>${dayLabel(r.date)}</span><div class="r-val">${W(r.weight)} ${unit()}<button class="del" onclick="delBwEntry('${r.id}')">×</button></div></div>`),10);
+  document.getElementById('bwList').innerHTML='<div class="hint edit-hint" style="margin:0 0 2px;">Hold a row to edit it.</div>'+seeMore('bw',rows.slice().reverse().map(r=>`
+    <div class="listrow" data-lp="${r.id}"><span>${dayLabel(r.date)}${r.time?` <span class="muted num" style="font-size:11.5px;">${r.time}</span>`:''}</span><div class="r-val">${W(r.weight)} ${unit()}<button class="del" onclick="delBwEntry('${r.id}')">×</button></div></div>`),10);
 }
 function logBp(){
   const sys=+document.getElementById('bpSys').value, dia=+document.getElementById('bpDia').value, pulse=+document.getElementById('bpPulse').value||null;
@@ -2730,11 +3202,11 @@ function renderBp(){
   wrap.innerHTML=ctrlBar('bp')+sub+chart
   + `<div class="flexrow" style="margin-top:4px;"><span class="muted" style="font-size:11.5px;"><span style="color:var(--accent2)">■</span> systolic &nbsp; <span style="color:var(--blue)">■</span> diastolic</span>
      <button class="linkbtn" onclick="editBpRef()">ref ${ref.sys}/${ref.dia}</button></div>`;
-  document.getElementById('bpList').innerHTML=seeMore('bp',rows.slice().reverse().map(r=>`
-    <div class="listrow"><div><div class="r-title num">${r.sys}/${r.dia}</div><div class="r-sub">${dayLabel(r.date)} ${r.time}${r.pulse?' · '+r.pulse+' bpm':''}</div></div>
+  document.getElementById('bpList').innerHTML='<div class="hint edit-hint" style="margin:0 0 2px;">Hold a row to edit it.</div>'+seeMore('bp',rows.slice().reverse().map(r=>`
+    <div class="listrow" data-lp="${r.id}"><div><div class="r-title num">${r.sys}/${r.dia}</div><div class="r-sub">${dayLabel(r.date)} ${r.time}${r.pulse?' · '+r.pulse+' bpm':''}</div></div>
     <button class="del" onclick="delBp('${r.id}')">×</button></div>`),5);
 }
-function setBpAgg(k){ chartState.bp.agg=k; renderBp(); }
+function setBpAgg(k){ chartState.bp.agg=k; saveChartPrefs('bp'); renderBp(); }
 function editBpRef(){
   if(VIEWER) return;
   const r=DB.bpRef||{sys:120,dia:80};
@@ -2750,7 +3222,7 @@ function editBpRef(){
 function saveBpRef(reset){
   const sys=reset?120:+document.getElementById('refSys').value, dia=reset?80:+document.getElementById('refDia').value;
   if(!sys||!dia){ toast('Enter systolic and diastolic'); return; }
-  DB.bpRef={sys,dia}; chartState.bp.refs=true; save(); closeModal(); renderBp();
+  DB.bpRef={sys,dia}; chartState.bp.refs=true; saveChartPrefs('bp'); closeModal(); renderBp();
 }
 function logSleep(){
   const bed=document.getElementById('sleepBed').value, wake=document.getElementById('sleepWake').value;
@@ -2760,25 +3232,63 @@ function logSleep(){
   DB.sleep.push({id:uid(),date:curDay(),bed,wake,hours:round1(hours),quality:q});
   save(); closeModal(); renderCurrent(); toast(`Sleep logged — ${hours.toFixed(1)}h, ${sqOf(q).l.toLowerCase()}`);
 }
+/* ---- naps ---- */
+const NAP_BLUES=['#A9CBEF','#76A9E0','#4A86CC','#2C63A8'];   // short → long
+function napColor(h){ return NAP_BLUES[h<0.5?0:h<1?1:h<1.5?2:3]; }
+function fmtNap(h){ return h<1?Math.round(h*60)+' min':h.toFixed(1)+'h'; }
+function prepNapForm(){
+  const a=document.getElementById('napStart'), b=document.getElementById('napEnd');
+  if(!a.value||!b.value){
+    if(isToday()){ const e=new Date(), s=new Date(e-30*60000); b.value=e.toTimeString().slice(0,5); a.value=s.toTimeString().slice(0,5); }
+    else { a.value='14:00'; b.value='14:30'; }
+  }
+  updNapHrs();
+}
+function updNapHrs(){
+  const h=sleepHours(document.getElementById('napStart').value,document.getElementById('napEnd').value);
+  document.getElementById('napHrs').innerHTML=h==null?'—':`${fmtNap(h)}<small>${h<0.5?'power nap':h<1.5?'nap':'long nap'}</small>`;
+}
+function logNap(){
+  const start=document.getElementById('napStart').value, end=document.getElementById('napEnd').value;
+  if(!start||!end){ toast('Enter both times'); return; }
+  const h=sleepHours(start,end);
+  DB.naps.push({id:uid(),date:curDay(),start,end,hours:Math.round(h*100)/100});
+  save(); ['napStart','napEnd'].forEach(i=>document.getElementById(i).value='');
+  closeModal(); renderCurrent(); toast(`Nap logged — ${fmtNap(h)}`);
+}
+function delNap(id){ DB.naps=DB.naps.filter(n=>n.id!==id); save(); renderCurrent(); }
 function delSleep(id){ DB.sleep=DB.sleep.filter(s=>s.id!==id); save(); renderCurrent(); }
 function renderSleepChart(){
   const wrap=document.getElementById('sleepChartWrap'); if(!wrap) return;
-  const rows=DB.sleep.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const rows=DB.sleep.slice().sort((a,b)=>a.date.localeCompare(b.date)), naps=DB.naps||[];
+  if(!rows.length&&!naps.length){ wrap.innerHTML='<div class="empty">No sleep logged — add it with +</div>'; return; }
   const all=rows.map(s=>({date:s.date,v:s.hours,c:sqOf(s.quality).c}));
-  if(all.length===0){ wrap.innerHTML='<div class="empty">No sleep logged — add it with +</div>'; return; }
+  const sleepBy={}, napBy={};
+  rows.forEach(s=>{ sleepBy[s.date]=s.hours; });
+  naps.forEach(n=>{ napBy[n.date]=(napBy[n.date]||0)+n.hours; });
   const st=chartState.sleep, cut=rangeCutoff(st.range);
   const inRange=all.filter(p=>p.date>=cut), rr=rows.filter(s=>s.date>=cut);
+  // naps sit on top of that day's sleep bar, shaded from light (short) to deep blue (long)
+  const napPts=Object.keys(napBy).sort().filter(d=>d>=cut).map(d=>({date:d,v:round1(napBy[d]),base:sleepBy[d]||0,c:napColor(napBy[d])}));
   const avg=inRange.length?inRange.reduce((a,p)=>a+p.v,0)/inRange.length:0;
   const avgQ=rr.length?rr.reduce((a,s)=>a+(s.quality||3),0)/rr.length:0;
+  const napN=naps.filter(n=>n.date>=cut).length, napTot=napPts.reduce((a,p)=>a+p.v,0);
+  const top=Math.max(10,...inRange.map(p=>p.v),...napPts.map(p=>p.v+p.base));
   wrap.innerHTML=ctrlBar('sleep')
-    + svgChart([{points:inRange,color:cssVar('--accent','#D9A441'),type:'bar'}],{refs:st.refs?refLines(all):[],fixed:[0,Math.max(10,...inRange.map(p=>p.v))],unit:'h'})
-    + `<div class="flexrow" style="font-size:12px; margin-top:6px;"><span class="muted">avg <b class="num" style="color:var(--text)">${avg.toFixed(1)}h</b> · quality <b style="color:${sqOf(avgQ).c}">${sqOf(avgQ).l}</b></span>
-        <span>${SQ.map(q=>`<span class="qdot" style="background:${q.c}; margin:0 0 0 5px;" title="${q.l}"></span>`).join('')}</span></div>`;
+    + svgChart([{points:inRange,color:cssVar('--accent','#D9A441'),type:'bar'},{points:napPts,color:NAP_BLUES[1],type:'bar',name:'nap'}],
+        {refs:st.refs?refLines(all):[],fixed:[0,top],unit:'h'})
+    + `<div class="flexrow" style="font-size:12px; margin-top:6px;"><span class="muted">${inRange.length?`avg <b class="num" style="color:var(--text)">${avg.toFixed(1)}h</b> · quality <b style="color:${sqOf(avgQ).c}">${sqOf(avgQ).l}</b>`:'no nights logged'}${napN?` · ${napN} nap${napN>1?'s':''} <b class="num" style="color:var(--text)">${fmtNap(napTot)}</b>`:''}</span>
+        <span>${SQ.map(q=>`<span class="qdot" style="background:${q.c}; margin:0 0 0 5px;" title="${q.l}"></span>`).join('')}</span></div>`
+    + (naps.length?`<div class="muted" style="font-size:11px; margin-top:5px;">naps ${NAP_BLUES.map(c=>`<span class="qdot" style="background:${c}; margin:0 1px 0 0;"></span>`).join('')} short → long, stacked on that day’s sleep</div>`:'');
 }
 function renderSleepHistory(){
-  const hist=DB.sleep.slice().sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('sleepHistoryList').innerHTML=hist.length?seeMore('sleep',hist.map(s=>{ const q=sqOf(s.quality); return `
-    <div class="listrow"><div><div class="r-title">${dayLabel(s.date)}</div><div class="r-sub">${s.bed}–${s.wake}</div></div>
+  const ent=[...DB.sleep.map(s=>({k:s.date+'2',s})),...DB.naps.map(n=>({k:n.date+'1'+n.start,n}))].sort((a,b)=>b.k.localeCompare(a.k));
+  document.getElementById('sleepHistoryList').innerHTML=ent.length?'<div class="hint edit-hint" style="margin:0 0 2px;">Hold a row to edit it.</div>'+seeMore('sleep',ent.map(e=>{
+    if(e.n){ const n=e.n; return `
+    <div class="listrow" data-lp="n:${n.id}"><div><div class="r-title">${dayLabel(n.date)} <span class="qpill" style="background:${napColor(n.hours)}">Nap</span></div><div class="r-sub">${n.start}–${n.end}</div></div>
+    <div class="r-val">${fmtNap(n.hours)}<button class="del" onclick="delNap('${n.id}')">×</button></div></div>`; }
+    const s=e.s, q=sqOf(s.quality); return `
+    <div class="listrow" data-lp="s:${s.id}"><div><div class="r-title">${dayLabel(s.date)}</div><div class="r-sub">${s.bed}–${s.wake}</div></div>
     <div class="r-val"><span class="qpill" style="background:${q.c}">${q.l}</span> ${s.hours.toFixed(1)}h<button class="del" onclick="delSleep('${s.id}')">×</button></div></div>`; }),10)
     :'<div class="empty">No sleep logged</div>';
 }
@@ -2887,6 +3397,7 @@ function renderMeds(){
     }});
     attachLongPress(document.getElementById('medPresets'),editPreset);
   }
+  renderCycle();
   document.getElementById('medPresets').innerHTML=presetsHtml(true);
   document.getElementById('medDayTitle').textContent='Scheduled '+dayWord();
   const due=medsDue(curDay());
@@ -2984,10 +3495,229 @@ function logDose(){
   renderMeds(); toast(loggedMsg());
 }
 
+/* ============ cycle tracker ============
+   A plan = start date + compounds, each with a dose, how often, and the weeks it runs (counted from the start).
+   Two kinds: a cycle followed by PCT, or blast → cruise, where the cruise can run open-ended (no end week).
+   p2 marks the second phase — PCT or cruise. Logging a due dose adds it to Dose history. */
+const EVERY=[[1,'Daily','daily'],[2,'EOD','every other day'],[3,'E3D','every 3 days'],[3.5,'2×/wk','twice a week'],[7,'Weekly','weekly'],[14,'E2W','every 2 weeks']];
+function everyLabel(v){ const e=EVERY.find(x=>x[0]===+v); return e?e[2]:`every ${v} days`; }
+function everyOpts(v){ const o=EVERY.some(x=>x[0]===+v)?EVERY:EVERY.concat([[+v,`E${v}D`]]); return o.map(([n,l])=>`<option value="${n}"${+v===n?' selected':''}>${l}</option>`).join(''); }
+const isBC=c=>c.type==='bc';
+const p2Name=c=>isBC(c)?'Cruise':'PCT';
+function dayDiff(a,b){ return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5); }
+function addDays(d,n){ const x=new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return ymd(x); }
+function nmEq(a,b){ return String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase(); }
+function cycOpen(c){ return c.compounds.some(x=>!x.to); }
+function cycLastWeek(c){ return Math.max(1,...c.compounds.map(x=>+x.to||+x.from||1)); }
+function cycEnd(c){ return c.ended||(cycOpen(c)?'9999-12-31':addDays(c.start,cycLastWeek(c)*7-1)); }
+function compOn(comp,wk){ return wk>=(+comp.from||1)&&(!comp.to||wk<=+comp.to); }
+function compDue(comp,day){   // day = days since the plan started
+  const s=((+comp.from||1)-1)*7, e=comp.to?(+comp.to)*7-1:Infinity, ev=+comp.every||7, rel=day-s;
+  if(day<s||day>e) return false;
+  for(let k=Math.floor(rel/ev);k<=Math.ceil(rel/ev);k++) if(k>=0&&Math.floor(k*ev+1e-9)===rel) return true;
+  return false;
+}
+function curCycle(d){
+  const list=(DB.cycles||[]).filter(c=>c.start&&d<=cycEnd(c)).sort((a,b)=>a.start.localeCompare(b.start));
+  return list.find(c=>c.start<=d)||list[0]||null;
+}
+function compLogged(comp,from,to){
+  let sum=0;
+  DB.doses.forEach(x=>{ const d=x.date.slice(0,10); if(d>=from&&d<=to&&nmEq(x.name,comp.name)) sum+=+x.amount||0; });
+  DB.medLog.forEach(x=>{ if(x.date>=from&&x.date<=to&&nmEq(x.name,comp.name)) sum+=+x.dose||0; });
+  return sum;
+}
+function cycDoseOn(comp,d){ return DB.doses.find(x=>x.cyc===comp.id&&x.date.slice(0,10)===d)||DB.doses.find(x=>nmEq(x.name,comp.name)&&x.date.slice(0,10)===d); }
+function cycDueHtml(d){
+  const c=curCycle(d); if(!c||c.start>d) return '';
+  const idx=dayDiff(c.start,d);
+  return c.compounds.filter(x=>compDue(x,idx)).map(comp=>{ const log=cycDoseOn(comp,d); return `
+    <div class="med${log?' done':''}" onclick="toggleCycDose('${c.id}','${comp.id}')">
+      <div class="box">✓</div>
+      <div class="mid"><div class="mname">${esc(comp.name)}</div>
+        <div class="msub">${comp.dose||''}${esc(comp.unit||'')} · ${esc(c.name)} wk ${Math.floor(idx/7)+1}${comp.p2?' · '+p2Name(c):''}</div></div>
+      <div class="mtime">${log?'✓ '+(log.date.slice(11)||''):'due'}</div></div>`; }).join('');
+}
+function toggleCycDose(cid,compId){
+  if(VIEWER) return;
+  const d=curDay(), c=DB.cycles.find(x=>x.id===cid), comp=c&&c.compounds.find(x=>x.id===compId); if(!comp) return;
+  const i=DB.doses.findIndex(x=>x.cyc===compId&&x.date.slice(0,10)===d);
+  if(i>=0){ DB.doses.splice(i,1); save(); renderCurrent(); toast('Unmarked'); return; }
+  if(cycDoseOn(comp,d)){ toast('Already in Dose history '+dayWord()); return; }
+  DB.doses.push({id:uid(),date:d+' '+nowHM(),category:comp.cat||(comp.p2&&!isBC(c)?'Medication':'Steroid'),name:comp.name,amount:+comp.dose||null,unit:comp.unit||'',cyc:compId});
+  save(); renderCurrent(); toast(`${comp.name} ${comp.dose||''}${comp.unit||''} — ${isToday()?'logged at '+nowHM():'logged to '+dayLabel()}`);
+}
+function cycTimeline(c,d){
+  const idx=dayDiff(c.start,d), open=cycOpen(c), endIdx=c.ended?dayDiff(c.start,c.ended):null;
+  // an open-ended cruise has no last week: show a few weeks past today (or up to when it was ended)
+  const weeks=!open?cycLastWeek(c):endIdx!=null?Math.max(cycLastWeek(c),Math.floor(endIdx/7)+1):Math.max(cycLastWeek(c),Math.floor(Math.max(idx,0)/7)+1)+4;
+  const days=weeks*7, W=320, L=86, R=8, rowH=16, top=16, comps=c.compounds, H=top+comps.length*rowH+14;
+  const x=day=>L+(Math.min(day,days)/days)*(W-L-R), step=weeks<=8?1:weeks<=16?2:weeks<=32?4:8;
+  let g='';
+  for(let w=0;w<=weeks;w++){
+    g+=`<line x1="${x(w*7).toFixed(1)}" x2="${x(w*7).toFixed(1)}" y1="${top-4}" y2="${H-12}" stroke="var(--border)" stroke-width="${w%step?0.4:0.9}"/>`;
+    if(w<weeks&&w%step===0) g+=`<text x="${(x(w*7)+2).toFixed(1)}" y="${H-2}" font-size="8">${w+1}</text>`;
+  }
+  comps.forEach((comp,i)=>{
+    const y=top+i*rowH, a=x(((+comp.from||1)-1)*7), b=comp.to?x(+comp.to*7):x(endIdx!=null?endIdx+1:days);
+    const nm=comp.name.length>13?comp.name.slice(0,12)+'…':comp.name, col=comp.p2?'var(--blue)':'var(--accent)';
+    g+=`<text x="0" y="${y+10}" font-size="9" style="fill:var(--text)">${esc(nm)}</text>
+      <rect x="${a.toFixed(1)}" y="${y+2}" width="${Math.max(2,b-a).toFixed(1)}" height="${rowH-6}" rx="3" fill="${col}" opacity=".85"/>`;
+    if(!comp.to&&endIdx==null) g+=`<path d="M${(b-1).toFixed(1)} ${y}l6 ${rowH/2-3}l-6 ${rowH/2-3}z" fill="${col}"/>`;   // keeps going
+  });
+  const last=addDays(c.start,days-1);
+  [...new Set(DB.labResults.map(r=>r.date))].filter(ld=>ld>=c.start&&ld<=last)
+    .forEach(ld=>{ g+=`<circle cx="${x(dayDiff(c.start,ld)+0.5).toFixed(1)}" cy="${top-8}" r="3" fill="var(--accent2)"/>`; });
+  if(idx>=0&&idx<days) g+=`<line x1="${x(idx+0.5).toFixed(1)}" x2="${x(idx+0.5).toFixed(1)}" y1="${top-12}" y2="${H-12}" stroke="var(--text)" stroke-width="1.2"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block; margin:10px 0 4px;">${g}</svg>
+    <div class="muted" style="font-size:11px; margin-bottom:4px;"><span style="color:var(--accent)">■</span> ${isBC(c)?'blast':'on cycle'} &nbsp;<span style="color:var(--blue)">■</span> ${isBC(c)?'cruise':'PCT'} &nbsp;<span style="color:var(--accent2)">●</span> bloodwork &nbsp;│ today</div>`;
+}
+function renderCycle(){
+  const el=document.getElementById('cycleCard'); if(!el) return;
+  const d=curDay(), c=curCycle(d), all=(DB.cycles||[]).slice().sort((a,b)=>b.start.localeCompare(a.start));
+  const past=all.filter(x=>x!==c&&cycEnd(x)<d), next=all.filter(x=>x!==c&&x.start>d);
+  let h='';
+  if(!c) h+=`<div class="hint">Plan a cycle with PCT, or a blast → cruise — compounds, doses, how often and which weeks each one runs. You’ll see the current week, what’s due each day (on Today too), and what you’ve logged against the plan.</div>
+    <button class="btn block cyc-actions" onclick="openCycleEditor()">+ Plan a cycle or blast</button>`;
+  else{
+    const bc=isBC(c), open=cycOpen(c)&&!c.ended, weeks=cycLastWeek(c), idx=dayDiff(c.start,d), wk=Math.floor(idx/7)+1, started=idx>=0;
+    const act=started?c.compounds.filter(x=>compOn(x,wk)):[];
+    const phase=!started?`starts in ${-idx} day${idx===-1?'':'s'}`
+      :bc?(act.some(x=>!x.p2)?'blasting':act.length?'cruising':'nothing running this week')
+      :(act.length&&act.every(x=>x.p2)?'PCT':act.length?'on cycle':'nothing running this week');
+    h+=`<div class="stat-head"><div style="min-width:0;"><div class="big ell" style="font-size:20px;">${esc(c.name)}</div>
+        <div class="stat-sub" style="margin-bottom:6px;">${bc?'Blast → cruise':'Cycle → PCT'} · ${started?`week ${wk}${open?'':' of '+weeks} · day ${idx+1}`:'starts '+dayLabel(c.start)} · ${phase}</div></div>
+        <button class="chip sm" style="margin:2px 0 0;" onclick="openCycleEditor('${c.id}')">Edit</button></div>`
+      +(open?'':`<div class="bar"><div style="width:${Math.max(0,Math.min(100,(idx+1)/(weeks*7)*100))}%"></div></div>`)
+      +cycTimeline(c,d);
+    if(started){
+      const ws=addDays(c.start,(wk-1)*7), we=addDays(ws,6);
+      h+=`<div class="sub-l">Week ${wk} · ${dayLabel(ws)} – ${dayLabel(we)}</div>`+(act.map(comp=>{
+        let planned=0; for(let i=0;i<7;i++) if(compDue(comp,(wk-1)*7+i)) planned+=+comp.dose||0;
+        const got=compLogged(comp,ws,we);
+        return `<div class="listrow"><div style="min-width:0;"><div class="r-title">${esc(comp.name)}${comp.p2?` <span class="tag supplement">${p2Name(c)}</span>`:''}</div>
+          <div class="r-sub">${comp.dose||'?'}${esc(comp.unit||'')} ${everyLabel(comp.every)} · weeks ${comp.from}${comp.to?'–'+comp.to:'+'}</div></div>
+          <div class="r-val"><span class="${got>planned&&planned?'bad':''}">${fmtN(got)}</span> / ${fmtN(planned)} ${esc(comp.unit||'')}<div class="r-sub">logged / planned</div></div></div>`;
+      }).join('')||'<div class="empty">Nothing planned this week</div>');
+      const due=cycDueHtml(d);
+      if(due) h+=`<div class="sub-l">Due ${dayWord()} — tap to log</div>${due}`;
+    }
+    if(c.notes) h+=`<div class="hint" style="margin:10px 0 0; white-space:pre-wrap;">${esc(c.notes)}</div>`;
+    h+=`<div class="row cyc-actions" style="margin-top:12px;"><button class="btn secondary" onclick="endCycle('${c.id}')">End ${bc?'plan':'cycle'}</button><button class="btn secondary" onclick="openCycleEditor()">+ New plan</button></div>`;
+  }
+  const lst=(t,arr)=>arr.length?`<div class="sub-l" style="margin-top:12px;">${t}</div>`+arr.map(x=>`
+    <div class="listrow" style="cursor:pointer;" onclick="openCycleEditor('${x.id}')"><div style="min-width:0;"><div class="r-title">${esc(x.name)} <span class="muted" style="font-size:11px;">${isBC(x)?'blast → cruise':'cycle → PCT'}</span></div>
+      <div class="r-sub ell">${dayLabel(x.start)} – ${x.ended||!cycOpen(x)?dayLabel(cycEnd(x)):'ongoing'} · ${x.compounds.map(y=>esc(y.name)).join(', ')}</div></div><span class="muted">›</span></div>`).join(''):'';
+  el.innerHTML=h+lst('Planned',next)+lst('Past',past);
+}
+let cycEdit=null;
+function openCycleEditor(id){
+  if(VIEWER) return;
+  const c=id?DB.cycles.find(x=>x.id===id):null;
+  cycEdit=c?JSON.parse(JSON.stringify(c)):{id:null,type:'cycle',name:'',start:curDay(),compounds:[],notes:''};
+  renderCycleEditor();
+}
+function setCycType(t){ cycEdit.type=t; renderCycleEditor(); }
+const CYC_CATS=['Steroid','Peptide','Medication','Supplement'];
+function compRowHtml(x,i){
+  const bc=isBC(cycEdit), set=(f,expr)=>`cycEdit.compounds[${i}].${f}=${expr}`;
+  return `<div class="cyc-comp"><div class="flexrow"><b class="ell">${esc(x.name)}</b><button class="pr-btn x" onclick="cycEdit.compounds.splice(${i},1); renderCycleEditor()" aria-label="Remove">×</button></div>
+    <div class="row">
+      <div><label>Dose</label><input type="number" step="any" inputmode="decimal" value="${x.dose!=null?x.dose:''}" onchange="${set('dose','+this.value||null')}"></div>
+      <div><label>Unit</label><input value="${esc(x.unit||'')}" onchange="${set('unit','this.value.trim()')}"></div>
+      <div><label>How often</label><select onchange="${set('every','+this.value')}">${everyOpts(x.every)}</select></div>
+    </div>
+    <div class="row">
+      <div><label>From week</label><input type="number" inputmode="numeric" value="${x.from}" onchange="${set('from','Math.max(1,+this.value||1)')}"></div>
+      <div><label>To week</label><input type="number" inputmode="numeric" value="${x.to||''}" placeholder="${bc?'ongoing':''}" onchange="${set('to','+this.value>0?Math.round(+this.value):null')}"></div>
+    </div>
+    <div class="row" style="align-items:flex-end;">
+      <div><label>Type</label><select onchange="${set('cat','this.value')}">${CYC_CATS.map(t=>`<option${(x.cat||(x.p2&&!bc?'Medication':'Steroid'))===t?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div><label class="refbox" style="font-size:13px; margin-bottom:14px;"><input type="checkbox" ${x.p2?'checked':''} onchange="${set('p2','this.checked')}"> ${bc?'Cruise':'Part of PCT'}</label></div>
+    </div></div>`;
+}
+function renderCycleEditor(){
+  const c=cycEdit, bc=isBC(c), names=doseItems().map(x=>x.label);
+  openModal(`<h3>${c.id?'Edit plan':'Plan a cycle or blast'}</h3>
+    <div style="margin-bottom:6px;"><button class="chip${bc?'':' on'}" onclick="setCycType('cycle')">Cycle → PCT</button><button class="chip${bc?' on':''}" onclick="setCycType('bc')">Blast → cruise</button></div>
+    <div class="hint">${bc?'Blast compounds run for set weeks. Tick “Cruise” on your cruise dose and leave its “To week” empty to keep it going until you end the plan — add another blast later with later weeks.'
+      :'Compounds run for set weeks, then PCT. Weeks count from the start date.'}</div>
+    <label>Name</label><input id="ceName" value="${esc(c.name)}" placeholder="${bc?'e.g. 2026 blast / cruise':'e.g. Winter bulk'}" oninput="cycEdit.name=this.value">
+    <label>Start date (week 1, day 1)</label><input type="date" id="ceStart" value="${c.start}" onchange="cycEdit.start=this.value">
+    <label>Compounds</label>
+    ${c.compounds.length?c.compounds.map(compRowHtml).join(''):'<div class="hint">No compounds yet — add one below.</div>'}
+    <div class="cyc-add">
+      <div class="sub-l" style="margin:0 0 6px;">Add a compound</div>
+      <input id="ceCName" list="ceNames" placeholder="Name — pick one you've logged or type a new one" autocomplete="off">
+      <datalist id="ceNames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+      <div class="row">
+        <div><label>Dose</label><input type="number" step="any" inputmode="decimal" id="ceDose"></div>
+        <div><label>Unit</label><input id="ceUnit" placeholder="mg"></div>
+        <div><label>How often</label><select id="ceEvery">${everyOpts(3.5)}</select></div>
+      </div>
+      <div class="row">
+        <div><label>From week</label><input type="number" inputmode="numeric" id="ceFrom" value="1"></div>
+        <div><label>To week</label><input type="number" inputmode="numeric" id="ceTo" value="12" placeholder="${bc?'ongoing':''}"></div>
+      </div>
+      <div class="row" style="align-items:flex-end;">
+        <div><label>Type</label><select id="ceCat">${CYC_CATS.map(t=>`<option>${t}</option>`).join('')}</select></div>
+        <div><label class="refbox" style="font-size:13px; margin-bottom:14px;"><input type="checkbox" id="ceP2" onchange="cycP2Toggle(this.checked)"> ${bc?'Cruise':'Part of PCT'}</label></div>
+      </div>
+      <button class="btn secondary block" style="margin-bottom:10px;" onclick="addCycComp()">Add compound</button>
+    </div>
+    <label>Notes (optional)</label><textarea id="ceNotes" rows="3" oninput="cycEdit.notes=this.value">${esc(c.notes||'')}</textarea>
+    <button class="btn block" onclick="saveCycle()">Save plan</button>
+    ${c.id?`<button class="btn danger block" style="margin-top:8px;" onclick="delCycle('${c.id}')">Delete plan</button>`:''}
+    <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>
+    <div class="hint" style="margin:10px 0 0;">This is a log — doses and timing are whatever you enter.</div>`);
+}
+/* ticking PCT / cruise on the add form: start it the week after the current compounds end */
+function cycP2Toggle(on){
+  if(!on) return;
+  const bounded=cycEdit.compounds.filter(x=>x.to&&!x.p2);
+  if(bounded.length) document.getElementById('ceFrom').value=Math.max(...bounded.map(x=>+x.to))+1;
+  document.getElementById('ceTo').value='';
+  if(!isBC(cycEdit)) document.getElementById('ceCat').value='Medication';
+}
+function addCycComp(){
+  const name=document.getElementById('ceCName').value.trim();
+  if(!name){ toast('Enter a compound name'); return; }
+  const bc=isBC(cycEdit), from=Math.max(1,+document.getElementById('ceFrom').value||1), toRaw=document.getElementById('ceTo').value;
+  const to=toRaw===''?null:Math.max(from,Math.round(+toRaw)||from);
+  if(!to&&!bc){ toast('Enter the week it ends'); return; }
+  cycEdit.compounds.push({id:uid(),name,dose:+document.getElementById('ceDose').value||null,unit:document.getElementById('ceUnit').value.trim(),
+    every:+document.getElementById('ceEvery').value||7,from,to,cat:document.getElementById('ceCat').value,p2:document.getElementById('ceP2').checked});
+  renderCycleEditor();
+}
+function saveCycle(){
+  const c=cycEdit;
+  c.name=(c.name||'').trim()||(isBC(c)?'Blast / cruise':'Cycle');
+  if(!c.start){ toast('Pick a start date'); return; }
+  if(!c.compounds.length){ toast('Add at least one compound'); return; }
+  if(!isBC(c)&&c.compounds.some(x=>!x.to)){ toast('Each compound in a cycle needs an end week — or switch to Blast → cruise'); return; }
+  if(c.compounds.some(x=>x.to&&+x.to<+x.from)){ toast('A compound ends before it starts — check its weeks'); return; }
+  const clean={id:c.id||uid(),type:c.type||'cycle',name:c.name,start:c.start,compounds:c.compounds,notes:(c.notes||'').trim()};
+  if(c.ended) clean.ended=c.ended;
+  const i=DB.cycles.findIndex(x=>x.id===clean.id);
+  if(i>=0) DB.cycles[i]=clean; else DB.cycles.push(clean);
+  save(); closeModal(); renderCurrent(); toast('Plan saved');
+}
+function endCycle(id){
+  const c=DB.cycles.find(x=>x.id===id); if(!c) return;
+  askConfirm(`End this ${isBC(c)?'plan':'cycle'} on ${dayLabel()}? Everything you logged is kept.`,'End it',()=>{
+    c.ended=curDay()<c.start?c.start:curDay(); save(); renderCurrent(); toast('Ended');
+  });
+}
+function delCycle(id){
+  askConfirm('Delete this plan? Doses you logged stay in Dose history.','Delete plan',()=>{
+    DB.cycles=DB.cycles.filter(x=>x.id!==id); save(); closeModal(); renderCurrent(); toast('Plan deleted');
+  },renderCycleEditor);
+}
+
 /* ============ settings ============ */
 let comboSquat,comboBench,comboDead;
 function renderSettings(){
-  renderProCard(); renderColors(); renderSync(); renderShare();
+  renderProCard(); renderColors(); renderSync(); renderShare(); renderMicroSettings();
   if(!comboSquat){
     comboSquat=new Combo('comboSquat',{placeholder:'Pick squat variation',getItems:exItems});
     comboBench=new Combo('comboBench',{placeholder:'Pick bench variation',getItems:exItems});
@@ -3098,6 +3828,7 @@ function checkReminders(){
 setInterval(checkReminders,20000);
 
 load();
+loadChartPrefs();
 if(!PRO_ENABLED){ document.getElementById('proTitle').remove(); document.getElementById('proCard').remove(); }
 applyTheme();
 initCollapsibles();
