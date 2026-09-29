@@ -357,6 +357,18 @@
   .qp-q{font-size:17px; font-weight:700; line-height:1.3; font-style:italic;}
   .qp-a{font-family:var(--mono); font-size:12px; color:var(--accent); margin-top:6px;}
   @keyframes quoteFade{ 0%{opacity:0; transform:translateY(-8px);} 4%{opacity:1; transform:none;} 100%{opacity:0;} }
+  /* undo in the toast */
+  .toast.has-undo{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:6px 6px 6px 14px;}
+  .toast.has-undo.show{pointer-events:auto;}
+  .toast-undo{background:var(--accent); color:var(--on-accent,#191A16); border:none; border-radius:6px; padding:7px 14px; font-family:var(--sans); font-weight:700; font-size:13px; flex:0 0 auto;}
+  /* arranging sections inside a tab */
+  body.arranging section.view.active > :not(h2.section-title){display:none !important;}
+  body.arranging section.view.active > h2.section-title{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:8px 8px 8px 12px; margin:0 0 8px; color:var(--text); font-size:14px;}
+  body.arranging h2.section-title::after{display:none;}
+  .sec-arr{display:flex; gap:6px;}
+  #arrangeBar{position:fixed; left:16px; right:16px; max-width:528px; margin:0 auto; bottom:calc(78px + env(safe-area-inset-bottom,0px)); z-index:60;
+    display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--text); color:var(--bg); border-radius:10px; padding:8px 8px 8px 14px; font-size:13px;}
+  #arrangeBar button{background:var(--accent); color:var(--on-accent,#191A16); border:none; border-radius:7px; padding:8px 16px; font-weight:700; font-family:var(--sans); font-size:13.5px;}
   /* read-only live view opened from a share link */
   .vhide{display:none !important;}
   body.viewer nav.tabs button.plus, body.viewer nav.tabs button[data-view="settings"], body.viewer .del,
@@ -774,7 +786,7 @@ function defaultStore(){
     medSchedule:[], medLog:[], medPresets:[], cardio:[], theme:{accent:null,mode:'auto'}, unit:'lb', collapsed:{'view-food:Food library':true,'view-lifts:Lift library':true,'view-meds:Add to schedule':true},
     goals:{bw:null,lifts:{}}, bpRef:{sys:120,dia:80}, share:null,
     naps:[], notes:[], cycles:[], charts:{}, microsOn:true, microGoals:{}, microHi:null, usdaKey:'',
-    tabOrder:null, quotes:null, quotesOn:true, macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
+    tabOrder:null, secOrder:null, quotes:null, quotesOn:true, macroAuto:null, plans:[], session:null, labs:[], labResults:[], pro:null,
     sbd:{squat:null,bench:null,deadlift:null},
     targets:{carb:0,prot:0,fat:0},
     reminders:{mealTimes:[],sleepTime:'',bwDay:null},
@@ -816,9 +828,11 @@ function load(){
 /* Change tracking for sync: every list item gets a _t (last-changed time), removed ids are
    remembered in _deleted, and other settings get a per-key time in _kt. This lets two devices
    merge entry by entry instead of one overwriting the other. */
-let SNAP=null;
+let SNAP=null, LAST_CHANGE=null;
 function stamp(baseline){
   const now=Date.now(); let changed=false;
+  // what this save changed, relative to the last one: new ids, and the old JSON of edited/removed items and settings
+  const diff={lists:{},keys:{}}, dl=k=>diff.lists[k]=diff.lists[k]||{add:[],old:[]};
   DB._deleted=DB._deleted||{}; DB._kt=DB._kt||{};
   const snap={arr:{},key:{}};
   for(const k in DB){
@@ -828,19 +842,24 @@ function stamp(baseline){
       const m=snap.arr[k]={};
       v.forEach(it=>{
         const {_t,...rest}=it, j=JSON.stringify(rest);
-        if(!baseline&&SNAP&&(!SNAP.arr[k]||SNAP.arr[k][it.id]!==j)){ it._t=now; changed=true; }
+        if(!baseline&&SNAP&&(!SNAP.arr[k]||SNAP.arr[k][it.id]!==j)){
+          it._t=now; changed=true;
+          const p=SNAP.arr[k]&&SNAP.arr[k][it.id]; if(p===undefined) dl(k).add.push(it.id); else dl(k).old.push(p);
+        }
         m[it.id]=j;
       });
-      if(!baseline&&SNAP&&SNAP.arr[k]) for(const id in SNAP.arr[k]) if(!(id in m)){ DB._deleted[id]=now; changed=true; }
+      if(!baseline&&SNAP&&SNAP.arr[k]) for(const id in SNAP.arr[k]) if(!(id in m)){ DB._deleted[id]=now; changed=true; dl(k).old.push(SNAP.arr[k][id]); }
     } else {
       const j=JSON.stringify(v);
-      if(!baseline&&SNAP&&SNAP.key[k]!==j){ DB._kt[k]=now; changed=true; }
+      if(!baseline&&SNAP&&SNAP.key[k]!==j){ DB._kt[k]=now; changed=true; diff.keys[k]=SNAP.key[k]; }
       snap.key[k]=j;
     }
   }
   const old=now-180*864e5;
   for(const id in DB._deleted) if(DB._deleted[id]<old) delete DB._deleted[id];
-  SNAP=snap; return changed;
+  SNAP=snap;
+  if(changed&&!baseline){ diff.at=now; LAST_CHANGE=diff; }
+  return changed;
 }
 function save(){
   if(VIEWER) return;   // a viewer never writes anything
@@ -941,6 +960,7 @@ class Combo{
 /* ============ ui helpers ============ */
 let currentView='dash';
 function showView(name){
+  if(arrView) exitArrange(true);
   currentView=name;
   document.querySelectorAll('section.view').forEach(s=>s.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
@@ -1040,6 +1060,7 @@ function initCollapsibles(){
         while(n&&!n.matches('h2.section-title')){ n.hidden=c; n=n.nextElementSibling; }
       };
       h.addEventListener('click',()=>{
+        if(document.body.classList.contains('arranging')||Date.now()-arrAt<700) return;   // holding a title opens arrange mode instead
         DB.collapsed=DB.collapsed||{};
         if(DB.collapsed[key]) delete DB.collapsed[key]; else DB.collapsed[key]=true;
         save(); apply();
@@ -1049,8 +1070,28 @@ function initCollapsibles(){
   });
 }
 function toast(msg){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('has-undo'); t.classList.add('show');
   clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200);
+}
+/* toast with an Undo button that reverses just the change the last save made */
+function toastUndo(msg){
+  const ch=LAST_CHANGE; if(!ch||VIEWER||Date.now()-ch.at>2000){ toast(msg); return; }   // only offer undo for a change made just now
+  const t=document.getElementById('toast');
+  t.innerHTML=`<span>${esc(msg)}</span><button class="toast-undo">Undo</button>`;
+  t.classList.add('show','has-undo');
+  t.querySelector('button').onclick=e=>{ e.stopPropagation(); clearTimeout(window._tt); t.classList.remove('show','has-undo'); undoChange(ch); };
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show','has-undo'),6000);
+}
+function undoChange(ch){
+  for(const k in ch.lists){
+    const {add,old}=ch.lists[k];
+    let arr=(DB[k]||[]).filter(it=>!add.includes(it.id));
+    old.forEach(j=>{ const it=JSON.parse(j), i=arr.findIndex(x=>x.id===it.id); if(i>=0) arr[i]=it; else arr.push(it); });
+    DB[k]=arr;
+  }
+  for(const k in ch.keys){ if(ch.keys[k]===undefined) delete DB[k]; else DB[k]=JSON.parse(ch.keys[k]); }
+  document.querySelectorAll('.quote-pop').forEach(n=>n.remove());
+  save(); renderCurrent(); renderSession(); toast('Undone');
 }
 function pickChip(el,groupId){
   document.querySelectorAll('#'+groupId+' .chip').forEach(c=>c.classList.remove('on'));
@@ -1343,7 +1384,7 @@ function renderDash(){
         ${tc?`<div class="bar ${t.cal>tc?'over':''}"><div style="width:${pct}%"></div></div>`:''}</div>`; })()}
     ${macroBar('Protein',t.prot,T.prot,'g')}${macroBar('Carbs',t.carb,T.carb,'g')}${macroBar('Fat',t.fat,T.fat,'g')}
     ${(!T.carb&&!T.prot&&!T.fat)?'<div class="empty">Set targets in More → Daily macro targets</div>':''}
-    ${dayMeals.map(m=>{ const x=mealMacros(m); return `<div class="listrow"><div><div class="r-title">${esc(x.name)}</div><div class="r-sub">${m.time||'—'} · ${m.mealType}</div></div><div class="r-val" style="font-size:12px;">P${Math.round(x.prot)} C${Math.round(x.carb)} F${Math.round(x.fat)}</div></div>`; }).join('')}`;
+    ${dayMeals.map(m=>{ const x=mealMacros(m); return `<div class="listrow" data-lp="m:${m.id}"><div><div class="r-title">${esc(x.name)}</div><div class="r-sub">${m.time||'—'} · ${m.mealType}</div></div><div class="r-val" style="font-size:12px;">P${Math.round(x.prot)} C${Math.round(x.carb)} F${Math.round(x.fat)}</div></div>`; }).join('')}`;
 
   const rem={carb:Math.max(0,T.carb-t.carb),prot:Math.max(0,T.prot-t.prot),fat:Math.max(0,T.fat-t.fat)};
   let html=`<div class="flexrow" style="margin-bottom:8px;"><span class="muted">What to eat next</span><span class="num muted">${Math.round(rem.prot)}P ${Math.round(rem.carb)}C ${Math.round(rem.fat)}F left</span></div>`;
@@ -1396,7 +1437,7 @@ function saveNote(del){
   if(!text){ if(old) DB.notes=DB.notes.filter(n=>n!==old); }
   else if(old) old.text=text;
   else DB.notes.push({id:uid(),date:d,text});
-  save(); closeModal(); renderCurrent(); toast(!text?(old?'Entry deleted':'Nothing to save'):'Saved');
+  save(); closeModal(); renderCurrent(); (!text&&!old?toast:toastUndo)(!text?(old?'Entry deleted':'Nothing to save'):'Saved');
 }
 function pastNotes(){
   const list=(DB.notes||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
@@ -1423,9 +1464,9 @@ function renderFood(){
   }
   document.getElementById('foodDayTitle').textContent='Eaten '+dayWord();
   const todays=DB.meals.filter(m=>m.date===curDay()).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  document.getElementById('todayMealsList').innerHTML=todays.length?todays.map(m=>{
+  document.getElementById('todayMealsList').innerHTML=todays.length?'<div class="hint edit-hint" style="margin:0 0 2px;">Hold a meal to edit it.</div>'+todays.map(m=>{
     const x=mealMacros(m);
-    return `<div class="listrow"><div><div class="r-title">${esc(x.name)}${m.foodId?'':' <span class="muted" style="font-size:11px;">quick</span>'}</div>
+    return `<div class="listrow" data-lp="m:${m.id}"><div><div class="r-title">${esc(x.name)}${m.foodId?'':' <span class="muted" style="font-size:11px;">quick</span>'}</div>
       <div class="r-sub">${m.time||'—'} · ${m.mealType}${m.foodId?` · ×${m.servings}`:''} · P${Math.round(x.prot)} C${Math.round(x.carb)} F${Math.round(x.fat)}</div></div>
       <button class="del" onclick="delMeal('${m.id}')">remove</button></div>`;
   }).join(''):`<div class="empty">Nothing logged ${dayWord()}</div>`;
@@ -1553,7 +1594,7 @@ function logMeal(){
   if(!foodId){ toast('Pick a food, or type a new one'); return; }
   DB.meals.push({id:uid(),date:curDay(),time:nowHM(),foodId,servings:+document.getElementById('logServings').value||1,mealType:document.getElementById('logMealType').value});
   save(); comboFood.clear(); document.getElementById('logServings').value=1;
-  renderCurrent(); toast(loggedMsg());
+  renderCurrent(); toastUndo(loggedMsg());
 }
 function quickAddMeal(){
   const carb=+document.getElementById('qCarb').value||0, prot=+document.getElementById('qProt').value||0, fat=+document.getElementById('qFat').value||0;
@@ -1563,9 +1604,9 @@ function quickAddMeal(){
     mealType:document.getElementById('qMealType').value});
   save();
   ['qName','qCarb','qProt','qFat'].forEach(i=>document.getElementById(i).value='');
-  renderCurrent(); toast(loggedMsg());
+  renderCurrent(); toastUndo(loggedMsg());
 }
-function delMeal(id){ DB.meals=DB.meals.filter(m=>m.id!==id); save(); renderFood(); }
+function delMeal(id){ DB.meals=DB.meals.filter(m=>m.id!==id); save(); renderCurrent(); toastUndo('Removed'); }
 
 /* ============ micronutrients ============
    Nutrients, grouping and default daily targets follow Cronometer's summary screen.
@@ -1767,7 +1808,7 @@ function cmpSet(s,p){
   return '';
 }
 function setChip(s,del,cls){
-  return `<span class="set${cls?' '+cls:''}">${W(s.weight)}×${s.reps}${s.rpe?`<span style="color:var(--blue)"> @${s.rpe}</span>`:''}${del?`<button class="x" onclick="delSet('${s.id}')">×</button>`:''}</span>`;
+  return `<span class="set${cls?' '+cls:''}" data-lp="s:${s.id}">${W(s.weight)}×${s.reps}${s.rpe?`<span style="color:var(--blue)"> @${s.rpe}</span>`:''}${del?`<button class="x" onclick="delSet('${s.id}')">×</button>`:''}</span>`;
 }
 function dayLiftsHtml(date,withDelete){
   const sets=DB.sets.filter(s=>s.date===date);
@@ -1790,7 +1831,7 @@ function renderLifts(){
   if(!comboLook.value&&DB.sets.length){ const last=DB.sets[DB.sets.length-1]; if(DB.exercises.some(e=>e.id===last.exId)) comboLook.setSelection(last.exId); }
   renderExLibrary(); renderLogLiftChart();
   document.getElementById('liftDayTitle').textContent='Sets '+dayWord();
-  document.getElementById('liftHistoryList').innerHTML=dayLiftsHtml(curDay(),true)||`<div class="empty">No sets logged ${dayWord()}</div>`;
+  document.getElementById('liftHistoryList').innerHTML=(h=>h?'<div class="hint edit-hint" style="margin:0 0 2px;">Hold a set to edit it.</div>'+h:'')(dayLiftsHtml(curDay(),true))||`<div class="empty">No sets logged ${dayWord()}</div>`;
   syncRpeToggle();
   renderCardio();
   renderPlans();
@@ -1858,7 +1899,7 @@ function applySynced(data){
   stamp(true);
   try{ localStorage.setItem(STORE_KEY,JSON.stringify(DB)); }catch(e){}
   if(JSON.stringify(DB)===before) return;
-  loadChartPrefs(); applyTabOrder();
+  loadChartPrefs(); applyTabOrder(); applySecOrder();
   applyTheme();
   const a=document.activeElement, typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName);
   if(!typing&&!document.getElementById('modal').classList.contains('open')){ renderCurrent(); renderSession(); }
@@ -2845,7 +2886,7 @@ function saveSxSet(noRender){
   if(set.rpe&&it.rpe&&set.rpe!==it.rpe) msg+=` · RPE ${set.rpe} vs target ${it.rpe}`;
   if(st&&w>st.best.weight&&isPro()) confetti(40);
   if(it.done.length>=it.sets){ const nx=sxNextIdx(); if(nx>=0){ S.cur=nx; msg+=` · next: ${exName(S.items[nx].exId)}`; } }
-  save(); toast(msg); showSetQuote();
+  save(); toastUndo(msg); showSetQuote();
   if(!noRender) renderSession();
   return true;
 }
@@ -2889,7 +2930,7 @@ function cardioItems(){
   return Object.values(seen);
 }
 function cardioDayHtml(date,withDelete){
-  return DB.cardio.filter(c=>c.date===date).map(c=>`<div class="listrow"><span class="r-title">${esc(c.name)}</span>
+  return DB.cardio.filter(c=>c.date===date).map(c=>`<div class="listrow" data-lp="c:${c.id}"><span class="r-title">${esc(c.name)}</span>
     <div class="r-val">${round1(c.min)} min${withDelete?`<button class="del" onclick="delCardio('${c.id}')">×</button>`:''}</div></div>`).join('');
 }
 function renderCardio(){
@@ -2897,7 +2938,7 @@ function renderCardio(){
     const last=DB.cardio.slice().reverse().find(c=>c.name===id);
     if(last) document.getElementById('cardioMin').value=last.min;
   }});
-  document.getElementById('cardioDayList').innerHTML=cardioDayHtml(curDay(),true)||`<div class="empty">No cardio ${dayWord()} — log it with +</div>`;
+  document.getElementById('cardioDayList').innerHTML=(h=>h?'<div class="hint edit-hint" style="margin:0 0 2px;">Hold an entry to edit it.</div>'+h:'')(cardioDayHtml(curDay(),true))||`<div class="empty">No cardio ${dayWord()} — log it with +</div>`;
   const byDate={};
   DB.cardio.forEach(c=>{ byDate[c.date]=(byDate[c.date]||0)+c.min; });
   const all=Object.keys(byDate).sort().map(d=>({date:d,v:round1(byDate[d])}));
@@ -2915,9 +2956,9 @@ function logCardio(){
   if(!name||!min){ toast('Enter activity and minutes'); return; }
   DB.cardio.push({id:uid(),date:curDay(),time:nowHM(),name,min});
   save(); comboCardio.clear(); document.getElementById('cardioMin').value='';
-  closeModal(); renderCurrent(); toast(loggedMsg());
+  closeModal(); renderCurrent(); toastUndo(loggedMsg());
 }
-function delCardio(id){ DB.cardio=DB.cardio.filter(c=>c.id!==id); save(); renderCardio(); }
+function delCardio(id){ DB.cardio=DB.cardio.filter(c=>c.id!==id); save(); renderCurrent(); toastUndo('Cardio deleted'); }
 /* the set to beat next: same set number from last session */
 function prefillNext(exId){
   const today=setsOn(exId,curDay()), prev=lastSession(exId,curDay());
@@ -3046,11 +3087,15 @@ function logSet(){
   save(); document.getElementById('liftRpe').value='';
   const pr=st&&weight>st.best.weight;
   prefillNext(exId); renderLogHint(); renderSheetLiftChart(); renderCurrent();
-  toast(pr?'Set logged — new PR':(isToday()?'Set logged':'Set logged to '+dayLabel()));
+  toastUndo(pr?'Set logged — new PR':(isToday()?'Set logged':'Set logged to '+dayLabel()));
   if(pr&&isPro()) confetti(40);
   showSetQuote();
 }
-function delSet(id){ DB.sets=DB.sets.filter(s=>s.id!==id); save(); renderLifts(); }
+function delSet(id){
+  DB.sets=DB.sets.filter(s=>s.id!==id);
+  if(DB.session) DB.session.items.forEach(it=>{ it.done=it.done.filter(x=>x!==id); });
+  save(); renderCurrent(); if(DB.session) renderSession(); toastUndo('Set deleted');
+}
 function setChartMetric(m){ chartMetric=m; renderLogLiftChart(); }
 
 /* ============ body: weight, bp, sleep ============ */
@@ -3064,9 +3109,9 @@ function renderBody(){
   renderBodyweight(); renderBp(); renderSleepChart(); renderSleepHistory(); renderLabs();
 }
 const fv=id=>document.getElementById(id).value;
-const editBtns=(save,del)=>`<button class="btn block" onclick="${save}">Save</button>
+const editBtns=(save,del,cancel)=>`<button class="btn block" onclick="${save}">Save</button>
   <button class="btn danger block" style="margin-top:8px;" onclick="${del}">Delete</button>
-  <button class="btn secondary block" style="margin-top:8px;" onclick="closeModal()">Cancel</button>`;
+  <button class="btn secondary block" style="margin-top:8px;" onclick="${cancel||'closeModal()'}">Cancel</button>`;
 function editBwEntry(id){
   const r=DB.bodyweight.find(x=>x.id===id); if(!r||VIEWER) return;
   openModal(`<h3>Edit bodyweight</h3>
@@ -3082,7 +3127,7 @@ function saveBwEntry(id){
   if(clash) DB.bodyweight=DB.bodyweight.filter(x=>x!==clash);
   if(Math.abs(W(r.weight)-(+fv('ebW')))>1e-9) r.weight=w;   // untouched → keep the exact stored value
   r.date=date; if(fv('ebTime')) r.time=fv('ebTime'); else delete r.time;
-  refreshAutoTargets(); save(); closeModal(); renderCurrent(); toast(clash?'Saved — replaced the other entry on that day':'Saved');
+  refreshAutoTargets(); save(); closeModal(); renderCurrent(); toastUndo(clash?'Saved — replaced the other entry on that day':'Saved');
 }
 function editBpEntry(id){
   const r=DB.bp.find(x=>x.id===id); if(!r||VIEWER) return;
@@ -3100,7 +3145,7 @@ function saveBpEntry(id){
   const r=DB.bp.find(x=>x.id===id), sys=+fv('epSys'), dia=+fv('epDia');
   if(!r||!fv('epDate')||!sys||!dia){ toast('Enter a date, systolic and diastolic'); return; }
   Object.assign(r,{date:fv('epDate'),time:fv('epTime')||r.time,sys,dia,pulse:+fv('epPulse')||null});
-  save(); closeModal(); renderCurrent(); toast('Saved');
+  save(); closeModal(); renderCurrent(); toastUndo('Saved');
 }
 let esQ=3;
 function setEsq(n){
@@ -3134,13 +3179,13 @@ function saveSleepEntry(id){
   const clash=DB.sleep.find(x=>x.id!==id&&x.date===date);
   if(clash) DB.sleep=DB.sleep.filter(x=>x!==clash);
   Object.assign(s,{date,bed,wake,hours:round1(sleepHours(bed,wake)),quality:esQ});
-  save(); closeModal(); renderCurrent(); toast(clash?'Saved — replaced the other night on that day':'Saved');
+  save(); closeModal(); renderCurrent(); toastUndo(clash?'Saved — replaced the other night on that day':'Saved');
 }
 function saveNapEntry(id){
   const n=DB.naps.find(x=>x.id===id), start=fv('enStart'), end=fv('enEnd');
   if(!n||!fv('enDate')||!start||!end){ toast('Enter a date and both times'); return; }
   Object.assign(n,{date:fv('enDate'),start,end,hours:Math.round(sleepHours(start,end)*100)/100});
-  save(); closeModal(); renderCurrent(); toast('Saved');
+  save(); closeModal(); renderCurrent(); toastUndo('Saved');
 }
 function logBodyweight(){
   const w=toLb(+document.getElementById('bwInput').value);
@@ -3148,9 +3193,9 @@ function logBodyweight(){
   DB.bodyweight=DB.bodyweight.filter(b=>b.date!==curDay());
   DB.bodyweight.push(Object.assign({id:uid(),date:curDay(),weight:w},isToday()?{time:nowHM()}:{})); refreshAutoTargets(); save();
   document.getElementById('bwInput').value='';
-  closeModal(); renderCurrent(); toast(isToday()?'Bodyweight logged':'Logged to '+dayLabel());
+  closeModal(); renderCurrent(); toastUndo(isToday()?'Bodyweight logged':'Logged to '+dayLabel());
 }
-function delBwEntry(id){ DB.bodyweight=DB.bodyweight.filter(b=>b.id!==id); refreshAutoTargets(); save(); renderCurrent(); }
+function delBwEntry(id){ DB.bodyweight=DB.bodyweight.filter(b=>b.id!==id); refreshAutoTargets(); save(); renderCurrent(); toastUndo('Bodyweight deleted'); }
 function renderBodyweight(){
   const rows=DB.bodyweight.slice().sort((a,b)=>a.date.localeCompare(b.date));
   const wrap=document.getElementById('bwChartWrap'), stat=document.getElementById('bwStat');
@@ -3176,9 +3221,9 @@ function logBp(){
   const time=document.getElementById('bpTime').value||nowHM();
   DB.bp.push({id:uid(),date:curDay(),time,sys,dia,pulse}); save();
   ['bpSys','bpDia','bpPulse','bpTime'].forEach(i=>document.getElementById(i).value='');
-  closeModal(); renderCurrent(); toast(isToday()?'Reading logged':'Logged to '+dayLabel());
+  closeModal(); renderCurrent(); toastUndo(isToday()?'Reading logged':'Logged to '+dayLabel());
 }
-function delBp(id){ DB.bp=DB.bp.filter(b=>b.id!==id); save(); renderBp(); }
+function delBp(id){ DB.bp=DB.bp.filter(b=>b.id!==id); save(); renderBp(); toastUndo('Reading deleted'); }
 function renderBp(){
   const wrap=document.getElementById('bpChartWrap'), stat=document.getElementById('bpStat');
   if(!wrap) return;
@@ -3248,7 +3293,7 @@ function logSleep(){
   const hours=sleepHours(bed,wake), q=+document.getElementById('sleepQuality').value||3;
   DB.sleep=DB.sleep.filter(s=>s.date!==curDay());
   DB.sleep.push({id:uid(),date:curDay(),bed,wake,hours:round1(hours),quality:q});
-  save(); closeModal(); renderCurrent(); toast(`Sleep logged — ${hours.toFixed(1)}h, ${sqOf(q).l.toLowerCase()}`);
+  save(); closeModal(); renderCurrent(); toastUndo(`Sleep logged — ${hours.toFixed(1)}h, ${sqOf(q).l.toLowerCase()}`);
 }
 /* ---- naps ---- */
 const NAP_BLUES=['#A9CBEF','#76A9E0','#4A86CC','#2C63A8'];   // short → long
@@ -3272,10 +3317,10 @@ function logNap(){
   const h=sleepHours(start,end);
   DB.naps.push({id:uid(),date:curDay(),start,end,hours:Math.round(h*100)/100});
   save(); ['napStart','napEnd'].forEach(i=>document.getElementById(i).value='');
-  closeModal(); renderCurrent(); toast(`Nap logged — ${fmtNap(h)}`);
+  closeModal(); renderCurrent(); toastUndo(`Nap logged — ${fmtNap(h)}`);
 }
-function delNap(id){ DB.naps=DB.naps.filter(n=>n.id!==id); save(); renderCurrent(); }
-function delSleep(id){ DB.sleep=DB.sleep.filter(s=>s.id!==id); save(); renderCurrent(); }
+function delNap(id){ DB.naps=DB.naps.filter(n=>n.id!==id); save(); renderCurrent(); toastUndo('Nap deleted'); }
+function delSleep(id){ DB.sleep=DB.sleep.filter(s=>s.id!==id); save(); renderCurrent(); toastUndo('Sleep deleted'); }
 function renderSleepChart(){
   const wrap=document.getElementById('sleepChartWrap'); if(!wrap) return;
   const rows=DB.sleep.slice().sort((a,b)=>a.date.localeCompare(b.date)), naps=DB.naps||[];
@@ -3345,7 +3390,7 @@ function toggleMed(schedId,slot){
   if(i>=0){ DB.medLog.splice(i,1); save(); renderCurrent(); toast('Unmarked'); return; }
   const med=DB.medSchedule.find(m=>m.id===schedId);
   DB.medLog.push({id:uid(),schedId,date:d,slot,time:nowHM(),name:med.name,dose:med.dose,unit:med.unit,category:med.category});
-  save(); renderCurrent(); toast(isToday()?'Taken at '+nowHM():'Logged to '+dayLabel());
+  save(); renderCurrent(); toastUndo(isToday()?'Taken at '+nowHM():'Logged to '+dayLabel());
 }
 function medRowsHtml(due){
   return due.map(d=>`
@@ -3369,7 +3414,7 @@ function takePreset(id){
   const p=DB.medPresets.find(x=>x.id===id); if(!p) return;
   DB.doses.push({id:uid(),date:curDay()+' '+nowHM(),category:p.category||'Medication',name:p.name,amount:p.amount,unit:p.unit});
   save(); renderCurrent();
-  toast(`${p.name} ${p.amount||''}${p.unit||''} — ${isToday()?'logged at '+nowHM():'logged to '+dayLabel()}`);
+  toastUndo(`${p.name} ${p.amount||''}${p.unit||''} — ${isToday()?'logged at '+nowHM():'logged to '+dayLabel()}`);
 }
 function savePreset(){
   const name=comboDose.text, amount=+document.getElementById('doseAmount').value||null;
@@ -3435,8 +3480,8 @@ function renderMeds(){
     ...DB.medLog.map(l=>({id:l.id,src:'log',date:l.date+' '+l.time,name:l.name,amount:l.dose,unit:l.unit,category:l.category})),
     ...DB.doses.map(d=>({id:d.id,src:'dose',date:d.date,name:d.name,amount:d.amount,unit:d.unit,category:d.category}))
   ].sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('doseHistoryList').innerHTML=combined.length?seeMore('doses',combined.map(d=>`
-    <div class="listrow"><div><div class="r-title">${esc(d.name)} <span class="tag ${(d.category||'medication').toLowerCase()}">${d.category||'—'}</span></div>
+  document.getElementById('doseHistoryList').innerHTML=combined.length?'<div class="hint edit-hint" style="margin:0 0 2px;">Hold a dose to edit it.</div>'+seeMore('doses',combined.map(d=>`
+    <div class="listrow" data-lp="${d.src}:${d.id}"><div><div class="r-title">${esc(d.name)} <span class="tag ${(d.category||'medication').toLowerCase()}">${d.category||'—'}</span></div>
       <div class="r-sub">${d.date}${d.src==='dose'?' · unscheduled':''}</div></div>
     <div class="r-val">${d.amount||''}${esc(d.unit||'')}<button class="del" onclick="delHistory('${d.src}','${d.id}')">×</button></div></div>`),10)
     :'<div class="empty">No doses logged</div>';
@@ -3502,7 +3547,7 @@ function delMed(id){
 function delHistory(src,id){
   if(src==='log') DB.medLog=DB.medLog.filter(l=>l.id!==id);
   else DB.doses=DB.doses.filter(d=>d.id!==id);
-  save(); renderMeds();
+  save(); renderMeds(); toastUndo('Dose deleted');
 }
 function logDose(){
   const name=comboDose.text;
@@ -3510,7 +3555,7 @@ function logDose(){
   if(!name||!amount){ toast('Substance and amount required'); return; }
   DB.doses.push({id:uid(),date:curDay()+' '+nowHM(),category:document.getElementById('doseCat').value,name,amount,unit});
   save(); comboDose.clear(); document.getElementById('doseAmount').value='';
-  renderMeds(); toast(loggedMsg());
+  renderMeds(); toastUndo(loggedMsg());
 }
 
 /* ============ cycle tracker ============
@@ -3563,7 +3608,7 @@ function toggleCycDose(cid,compId){
   if(i>=0){ DB.doses.splice(i,1); save(); renderCurrent(); toast('Unmarked'); return; }
   if(cycDoseOn(comp,d)){ toast('Already in Dose history '+dayWord()); return; }
   DB.doses.push({id:uid(),date:d+' '+nowHM(),category:comp.cat||(comp.p2&&!isBC(c)?'Medication':'Steroid'),name:comp.name,amount:+comp.dose||null,unit:comp.unit||'',cyc:compId});
-  save(); renderCurrent(); toast(`${comp.name} ${comp.dose||''}${comp.unit||''} — ${isToday()?'logged at '+nowHM():'logged to '+dayLabel()}`);
+  save(); renderCurrent(); toastUndo(`${comp.name} ${comp.dose||''}${comp.unit||''} — ${isToday()?'logged at '+nowHM():'logged to '+dayLabel()}`);
 }
 function cycTimeline(c,d){
   const idx=dayDiff(c.start,d), open=cycOpen(c), endIdx=c.ended?dayDiff(c.start,c.ended):null;
@@ -3751,11 +3796,13 @@ function resetTabOrder(){ DB.tabOrder=null; save(); applyTabOrder(); renderTabOr
 function renderTabOrderCard(){
   const el=document.getElementById('tabOrderCard'); if(!el) return;
   const order=[...navEl().children].map(b=>b.dataset.tab);
-  el.innerHTML=`<div class="hint">Hold a tab in the bar at the bottom and drag it left or right — or use the arrows here (top = far left).</div>`
+  el.innerHTML=`<div class="hint">Hold a tab in the bar at the bottom and drag it left or right — or use the arrows here (top = far left).
+      To move sections inside a tab (like Cycle or Micronutrients), hold the section’s title.</div>`
     +order.map((k,i)=>`<div class="plan-row"><span class="pr-name">${TAB_NAMES[k]||k}</span>
       <button class="pr-btn" onclick="moveTab(${i},-1)" ${i===0?'disabled':''} aria-label="Move left">↑</button>
       <button class="pr-btn" onclick="moveTab(${i},1)" ${i===order.length-1?'disabled':''} aria-label="Move right">↓</button></div>`).join('')
-    +(DB.tabOrder?`<button class="btn secondary block" style="margin-top:10px;" onclick="resetTabOrder()">Reset to default</button>`:'');
+    +(DB.tabOrder?`<button class="btn secondary block" style="margin-top:10px;" onclick="resetTabOrder()">Reset tab order</button>`:'')
+    +(DB.secOrder&&Object.keys(DB.secOrder).length?`<button class="btn secondary block" style="margin-top:8px;" onclick="resetSecOrder()">Reset section order in every tab</button>`:'');
 }
 (function(){
   const nav=navEl(); let hold=null, drag=null, sx=0;
@@ -3840,6 +3887,186 @@ function saveQuotes(){
   DB.quotes=lines.length?lines:null; save(); renderQuoteSettings(); toast(`Saved ${lines.length} quote${lines.length===1?'':'s'}`);
 }
 function resetQuotes(){ DB.quotes=null; save(); renderQuoteSettings(); toast('Back to the starter list'); }
+
+/* ============ arrange sections inside a tab ============
+   Hold a section title (Cycle, Micronutrients…) → every section in that tab shrinks to its title with ↑/↓.
+   A section = its title plus everything under it until the next title. Order is saved per tab (and synced). */
+const SEC_DEFAULT={};
+let arrView=null, arrAt=0;
+function secGroups(sec){
+  const g=[]; let cur=null;
+  [...sec.children].forEach(n=>{ if(n.matches('h2.section-title')){ cur={key:n.dataset.sec,h:n,nodes:[n]}; g.push(cur); } else if(cur) cur.nodes.push(n); });
+  return g;
+}
+function initSections(){
+  document.querySelectorAll('section.view').forEach(sec=>{
+    sec.querySelectorAll('h2.section-title').forEach(h=>{ h.dataset.sec=h.id||h.textContent.trim(); });
+    SEC_DEFAULT[sec.id]=secGroups(sec).map(g=>g.key);
+  });
+  applySecOrder();
+}
+function applySecOrder(){
+  document.querySelectorAll('section.view').forEach(sec=>{
+    const order=(DB.secOrder||{})[sec.id]||SEC_DEFAULT[sec.id]||[], def=SEC_DEFAULT[sec.id]||[];
+    const rank=k=>{ const i=order.indexOf(k); return i<0?1000+def.indexOf(k):i; };
+    secGroups(sec).sort((a,b)=>rank(a.key)-rank(b.key)).forEach(g=>g.nodes.forEach(n=>sec.appendChild(n)));
+  });
+}
+function shownGroups(){ return secGroups(document.getElementById(arrView)).filter(g=>getComputedStyle(g.h).display!=='none'); }
+function enterArrange(){
+  if(VIEWER||arrView) return;
+  arrView='view-'+currentView; document.body.classList.add('arranging');
+  document.getElementById('main').scrollTop=0;
+  renderArrange();
+}
+function renderArrange(){
+  document.querySelectorAll('.sec-arr').forEach(n=>n.remove());
+  let bar=document.getElementById('arrangeBar');
+  if(!arrView){ if(bar) bar.remove(); return; }
+  const vis=shownGroups();
+  vis.forEach((g,i)=>{
+    const d=document.createElement('span'); d.className='sec-arr';
+    d.innerHTML=`<button class="pr-btn" ${i===0?'disabled':''} onclick="event.stopPropagation(); moveSec(${i},-1)" aria-label="Move up">↑</button>
+      <button class="pr-btn" ${i===vis.length-1?'disabled':''} onclick="event.stopPropagation(); moveSec(${i},1)" aria-label="Move down">↓</button>`;
+    g.h.appendChild(d);
+  });
+  if(!bar){ bar=document.createElement('div'); bar.id='arrangeBar'; document.body.appendChild(bar); }
+  bar.innerHTML=`<span>Move sections with the arrows</span><button onclick="exitArrange()">Done</button>`;
+}
+function moveSec(i,d){
+  const vis=shownGroups(), a=vis[i], b=vis[i+d]; if(!a||!b) return;
+  const keys=secGroups(document.getElementById(arrView)).map(g=>g.key);
+  keys.splice(keys.indexOf(a.key),1);
+  keys.splice(keys.indexOf(b.key)+(d>0?1:0),0,a.key);
+  DB.secOrder=Object.assign({},DB.secOrder,{[arrView]:keys}); save();
+  applySecOrder(); renderArrange();
+}
+function exitArrange(quiet){
+  arrView=null; document.body.classList.remove('arranging'); renderArrange();
+  if(!quiet){ renderCurrent(); toast('Section order saved'); }
+}
+function resetSecOrder(){ DB.secOrder=null; save(); applySecOrder(); renderTabOrderCard(); toast('Sections back to the default order'); }
+(function(){
+  const main=document.getElementById('main'); let t=null, sx=0, sy=0;
+  main.addEventListener('pointerdown',e=>{
+    const h=e.target.closest('h2.section-title'); if(!h||VIEWER||arrView) return;
+    sx=e.clientX; sy=e.clientY; clearTimeout(t);
+    t=setTimeout(()=>{ t=null; arrAt=Date.now(); try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){} enterArrange(); },550);
+  });
+  main.addEventListener('pointermove',e=>{ if(t&&(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8)){ clearTimeout(t); t=null; } });
+  ['pointerup','pointercancel'].forEach(ev=>main.addEventListener(ev,()=>{ clearTimeout(t); t=null; }));
+})();
+
+/* ============ hold to edit: sets, cardio, meals, doses ============
+   Keys: s:<set id>, c:<cardio id>, m:<meal id>, log:<scheduled dose id>, dose:<unscheduled dose id> */
+function initEntryEditing(){
+  ['liftHistoryList','logLiftChart','dashLifts','cardioDayList','todayMealsList','macroCard','doseHistoryList','sessionOv']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) attachLongPress(el,k=>editEntry(k)); });
+  attachLongPress(document.getElementById('logLiftHint'),k=>editEntry(k,'lift'));   // inside the Log a set form → come back to it
+}
+function editEntry(key,back){
+  if(VIEWER) return;
+  const i=key.indexOf(':'), t=key.slice(0,i), id=key.slice(i+1);
+  if(t==='s') editSetEntry(id,back);
+  else if(t==='c') editCardioEntry(id);
+  else if(t==='m') editMealEntry(id);
+  else if(t==='log'||t==='dose') editDoseEntry(t,id);
+}
+function entryClose(back){
+  if(back==='lift') openForm('lift'); else closeModal();
+  renderCurrent(); if(DB.session) renderSession();
+}
+function editSetEntry(id,back){
+  const s=DB.sets.find(x=>x.id===id); if(!s) return;
+  const exs=DB.exercises.slice().sort((a,b)=>a.name.localeCompare(b.name)), b=back||'';
+  openModal(`<h3>Edit set</h3>
+    <label>Exercise</label><select id="stEx">${exs.map(e=>`<option value="${e.id}"${e.id===s.exId?' selected':''}>${esc(e.name)}</option>`).join('')}</select>
+    <div class="row"><div><label>Date</label><input type="date" id="stD" value="${s.date}" max="${todayStr()}"></div>
+      <div><label>Time</label><input type="time" id="stTm" value="${s.time||''}"></div></div>
+    <div class="row">
+      <div><label>Weight (${unit()})</label><input type="number" id="stW" step="any" inputmode="decimal" value="${W(s.weight)}"></div>
+      <div><label>Reps</label><input type="number" id="stR" inputmode="numeric" value="${s.reps}"></div>
+      <div><label>RPE</label><input type="number" id="stRpe" step="0.5" inputmode="decimal" placeholder="—" value="${s.rpe||''}"></div>
+    </div>
+    ${editBtns(`saveSetEntry('${id}','${b}')`,`delSet('${id}'); entryClose('${b}')`,`entryClose('${b}')`)}`);
+}
+function saveSetEntry(id,back){
+  const s=DB.sets.find(x=>x.id===id), w=+fv('stW'), r=+fv('stR');
+  if(!s||!w||!r||!fv('stD')){ toast('Enter a date, weight and reps'); return; }
+  if(Math.abs(W(s.weight)-w)>1e-9) s.weight=toLb(w);   // untouched → keep the exact stored value
+  Object.assign(s,{exId:fv('stEx')||s.exId,date:fv('stD'),reps:r,rpe:cleanRpe(fv('stRpe'))});
+  if(fv('stTm')) s.time=fv('stTm');
+  save(); entryClose(back); toastUndo('Set updated');
+}
+function editCardioEntry(id){
+  const c=DB.cardio.find(x=>x.id===id); if(!c) return;
+  openModal(`<h3>Edit cardio</h3>
+    <label>Activity</label><input id="ctN" value="${esc(c.name)}">
+    <div class="row"><div><label>Date</label><input type="date" id="ctD" value="${c.date}" max="${todayStr()}"></div>
+      <div><label>Minutes</label><input type="number" id="ctM" step="any" inputmode="decimal" value="${c.min}"></div></div>
+    ${editBtns(`saveCardioEntry('${id}')`,`closeModal(); delCardio('${id}')`)}`);
+}
+function saveCardioEntry(id){
+  const c=DB.cardio.find(x=>x.id===id), name=fv('ctN').trim(), min=+fv('ctM');
+  if(!c||!name||!min||!fv('ctD')){ toast('Enter an activity, date and minutes'); return; }
+  Object.assign(c,{name,min,date:fv('ctD')});
+  save(); closeModal(); renderCurrent(); toastUndo('Cardio updated');
+}
+function editMealEntry(id){
+  const m=DB.meals.find(x=>x.id===id); if(!m) return;
+  const types=['Breakfast','Lunch','Dinner','Snack'], foods=DB.foods.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const gone=m.foodId&&!foods.some(f=>f.id===m.foodId);
+  openModal(`<h3>Edit ${m.foodId?'meal':'quick add'}</h3>
+    ${m.foodId?`<label>Food</label><select id="mlF">${gone?`<option value="${m.foodId}" selected>(deleted food)</option>`:''}${foods.map(f=>`<option value="${f.id}"${f.id===m.foodId?' selected':''}>${esc(f.name)}</option>`).join('')}</select>
+      <label>Servings</label><input type="number" id="mlS" step="0.25" inputmode="decimal" value="${m.servings}">`
+    :`<label>What was it</label><input id="mlN" value="${esc(m.name||'')}">
+      <div class="row">
+        <div><label>Carbs</label><input type="number" id="mlC" step="any" inputmode="decimal" value="${m.carb||0}"></div>
+        <div><label>Protein</label><input type="number" id="mlP" step="any" inputmode="decimal" value="${m.prot||0}"></div>
+        <div><label>Fat</label><input type="number" id="mlFt" step="any" inputmode="decimal" value="${m.fat||0}"></div>
+      </div>`}
+    <div class="row"><div><label>Meal</label><select id="mlT">${types.map(t=>`<option${t===m.mealType?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div><label>Time</label><input type="time" id="mlTm" value="${m.time||''}"></div></div>
+    <label>Date</label><input type="date" id="mlD" value="${m.date}" max="${todayStr()}">
+    ${editBtns(`saveMealEntry('${id}')`,`closeModal(); delMeal('${id}')`)}`);
+}
+function saveMealEntry(id){
+  const m=DB.meals.find(x=>x.id===id); if(!m) return;
+  if(!fv('mlD')){ toast('Pick a date'); return; }
+  if(m.foodId){
+    const sv=+fv('mlS'); if(!(sv>0)){ toast('Enter servings'); return; }
+    m.foodId=fv('mlF'); m.servings=sv;
+  } else {
+    m.name=fv('mlN').trim()||'Quick add'; m.carb=+fv('mlC')||0; m.prot=+fv('mlP')||0; m.fat=+fv('mlFt')||0;
+  }
+  m.mealType=fv('mlT'); m.time=fv('mlTm')||m.time; m.date=fv('mlD');
+  save(); closeModal(); renderCurrent(); toastUndo('Meal updated');
+}
+function editDoseEntry(src,id){
+  const isLog=src==='log', d=isLog?DB.medLog.find(x=>x.id===id):DB.doses.find(x=>x.id===id); if(!d) return;
+  const date=isLog?d.date:d.date.slice(0,10), time=isLog?(d.time||''):d.date.slice(11,16), amt=isLog?d.dose:d.amount;
+  const cats=['Peptide','Medication','Supplement','Steroid'];
+  openModal(`<h3>Edit dose</h3>
+    <label>Substance</label><input id="dsN" value="${esc(d.name)}">
+    <div class="row">
+      <div><label>Amount</label><input type="number" id="dsA" step="any" inputmode="decimal" value="${amt!=null?amt:''}"></div>
+      <div><label>Unit</label><input id="dsU" value="${esc(d.unit||'')}"></div>
+      <div><label>Type</label><select id="dsC">${cats.map(c=>`<option${c===d.category?' selected':''}>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="row"><div><label>Date</label><input type="date" id="dsD" value="${date}" max="${todayStr()}"></div>
+      <div><label>Time</label><input type="time" id="dsT" value="${time}"></div></div>
+    ${isLog?'<div class="hint">A scheduled dose — changing its date moves the tick on the schedule too.</div>':''}
+    ${editBtns(`saveDoseEntry('${src}','${id}')`,`closeModal(); delHistory('${src}','${id}')`)}`);
+}
+function saveDoseEntry(src,id){
+  const isLog=src==='log', d=isLog?DB.medLog.find(x=>x.id===id):DB.doses.find(x=>x.id===id);
+  const name=fv('dsN').trim(), date=fv('dsD'), time=fv('dsT'), amt=fv('dsA')===''?null:+fv('dsA');
+  if(!d||!name||!date){ toast('Enter a name and date'); return; }
+  Object.assign(d,{name,unit:fv('dsU').trim(),category:fv('dsC')});
+  if(isLog){ d.dose=amt; d.date=date; if(time) d.time=time; }
+  else { d.amount=amt; d.date=date+' '+(time||d.date.slice(11,16)||'00:00'); }
+  save(); closeModal(); renderCurrent(); toastUndo('Dose updated');
+}
 
 /* ============ settings ============ */
 let comboSquat,comboBench,comboDead;
@@ -3960,6 +4187,8 @@ applyTabOrder();
 if(!PRO_ENABLED){ document.getElementById('proTitle').remove(); document.getElementById('proCard').remove(); }
 applyTheme();
 initCollapsibles();
+initSections();
+initEntryEditing();
 if(VIEWER) initViewer();
 showView('dash');
 renderSession();
